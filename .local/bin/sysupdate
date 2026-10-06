@@ -38,7 +38,7 @@ if Hyprland --verify-config -c "$HYPR_CONF" 2>&1 | grep -q 'config ok'; then
     echo "Config OK"
 else
     warn "Config has errors for Hyprland $after:"
-    Hyprland --verify-config -c "$HYPR_CONF" 2>&1 | grep -v '^=*$' | sed 's/^/    /'
+    Hyprland --verify-config -c "$HYPR_CONF" 2>&1 | grep 'Config error' | sed 's/^/    /'
 fi
 
 bold "Snapshots"
