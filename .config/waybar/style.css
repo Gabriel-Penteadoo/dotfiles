@@ -1,0 +1,8 @@
+* { font-family: "JetBrains Mono", monospace; font-size: 12px; min-height: 0; }
+window#waybar { background: rgba(30, 30, 46, 0.9); color: #cdd6f4; }
+#workspaces button { padding: 0 8px; color: #6c7086; border: none; border-radius: 0; }
+#workspaces button.active { color: #89b4fa; }
+#clock, #tray, #custom-vpn, #pulseaudio, #network, #battery { padding: 0 10px; }
+#custom-vpn { color: #a6e3a1; }
+#battery.warning { color: #f9e2af; }
+#battery.critical { color: #f38ba8; }

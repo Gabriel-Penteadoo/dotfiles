@@ -1,0 +1,19 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 28,
+  "modules-left": ["hyprland/workspaces"],
+  "modules-center": ["clock"],
+  "modules-right": ["tray", "custom/vpn", "pulseaudio", "network", "battery"],
+  "hyprland/workspaces": { "on-click": "activate" },
+  "clock": { "format": "{:%a %d %b  %H:%M}", "tooltip-format": "<tt>{calendar}</tt>" },
+  "custom/vpn": {
+    "exec": "pgrep -x openfortivpn >/dev/null && echo 'VPN' || echo ''",
+    "interval": 5,
+    "on-click": "~/.local/bin/vpn",
+    "on-click-right": "~/.local/bin/vpn off"
+  },
+  "pulseaudio": { "format": "VOL {volume}%", "format-muted": "MUTED", "on-click": "pavucontrol" },
+  "network": { "format-wifi": "WIFI {essid}", "format-ethernet": "ETH", "format-disconnected": "OFFLINE", "on-click": "nm-connection-editor" },
+  "battery": { "format": "BAT {capacity}%", "format-charging": "CHG {capacity}%", "states": { "warning": 25, "critical": 10 } }
+}

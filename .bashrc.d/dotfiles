@@ -1,0 +1,2 @@
+# Dotfiles: bare git repo at ~/.dotfiles, work tree = $HOME
+alias dot='git --git-dir="$HOME/.dotfiles" --work-tree="$HOME"'
