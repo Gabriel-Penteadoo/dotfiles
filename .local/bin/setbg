@@ -1,0 +1,6 @@
+#!/bin/sh
+# Usage: setbg <image>  — sets wallpaper now and on next login
+[ -f "$1" ] || { echo "usage: setbg <image>" >&2; exit 1; }
+ln -sf "$(realpath "$1")" ~/.config/wallpaper
+pkill -x swaybg
+swaybg -i ~/.config/wallpaper -m fill -c 1e1e2e >/dev/null 2>&1 &

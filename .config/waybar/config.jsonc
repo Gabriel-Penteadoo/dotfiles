@@ -3,17 +3,32 @@
   "position": "top",
   "height": 28,
   "modules-left": ["hyprland/workspaces"],
-  "modules-center": ["clock"],
-  "modules-right": ["tray", "custom/vpn", "pulseaudio", "network", "battery"],
+  "modules-center": ["clock", "custom/cava"],
+  "modules-right": ["custom/1password", "custom/vpn", "bluetooth", "pulseaudio", "network", "battery"],
   "hyprland/workspaces": { "on-click": "activate" },
   "clock": { "format": "{:%a %d %b  %H:%M}", "tooltip-format": "<tt>{calendar}</tt>" },
+  "custom/cava": { "exec": "~/.config/waybar/scripts/cava.sh", "format": "{}", "tooltip": false },
   "custom/vpn": {
-    "exec": "pgrep -x openfortivpn >/dev/null && echo 'VPN' || echo ''",
+    "exec": "pgrep -x openfortivpn >/dev/null && echo '{\"text\":\"󰦝\",\"class\":\"on\",\"tooltip\":\"VPN connected\"}' || echo '{\"text\":\"󰦝\",\"class\":\"off\",\"tooltip\":\"VPN off (click to connect)\"}'",
+    "return-type": "json",
     "interval": 5,
     "on-click": "~/.local/bin/vpn",
     "on-click-right": "~/.local/bin/vpn off"
   },
-  "pulseaudio": { "format": "VOL {volume}%", "format-muted": "MUTED", "on-click": "pavucontrol" },
-  "network": { "format-wifi": "WIFI {essid}", "format-ethernet": "ETH", "format-disconnected": "OFFLINE", "on-click": "nm-connection-editor" },
-  "battery": { "format": "BAT {capacity}%", "format-charging": "CHG {capacity}%", "states": { "warning": 25, "critical": 10 } }
+  "custom/1password": {
+    "exec": "pgrep -f '^/opt/1Password/1password' >/dev/null && echo '󰌆' || echo ''",
+    "interval": 5,
+    "tooltip-format": "1Password",
+    "on-click": "/opt/1Password/1password"
+  },
+  "bluetooth": {
+    "format": "󰂯", "format-off": "󰂲", "format-disabled": "󰂲",
+    "format-connected": "󰂱 {device_alias}",
+    "tooltip-format-connected": "{device_enumerate}",
+    "tooltip-format-enumerate-connected": "{device_alias}",
+    "on-click": "blueman-manager"
+  },
+  "pulseaudio": {"format": "{icon} {volume}%", "format-muted": "󰖁 muted", "format-icons": {"headphone": "󰋋", "default": ["󰕿", "󰖀", "󰕾"]}, "on-click": "pavucontrol"},
+  "network": {"format-wifi": "{icon} {essid}", "format-ethernet": "󰈀", "format-disconnected": "󰤮", "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"], "tooltip-format-wifi": "{essid} {signalStrength}%", "on-click": "nm-connection-editor"},
+  "battery": {"format": "{icon} {capacity}%", "format-charging": "󰂄 {capacity}%", "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"], "states": {"warning": 25, "critical": 10}}
 }

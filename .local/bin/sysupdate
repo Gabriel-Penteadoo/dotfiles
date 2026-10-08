@@ -4,7 +4,7 @@
 # sysupdate --no-firmware  -> skip fwupd
 set -uo pipefail
 
-HYPR_CONF="$HOME/.config/hypr/hyprland.conf"
+HYPR_CONF="$HOME/.config/hypr/hyprland.lua"
 bold() { printf '\n\e[1;34m==> %s\e[0m\n' "$*"; }
 warn() { printf '\e[1;33m!!  %s\e[0m\n' "$*"; }
 

@@ -1,0 +1,166 @@
+#!/usr/bin/python3 -I
+# Shortcut cheatsheet: Hyprland binds plus French AltGr characters.
+# Type to filter, arrows/PgUp/PgDn to scroll, Esc clears the filter or closes.
+#   keys        open the cheatsheet in a floating foot window
+#   keys --tui  run it in the current terminal
+import curses
+import os
+import sys
+
+SHORTCUTS = {
+    "Apps": [
+        ("Super + Return", "Terminal (alacritty)"),
+        ("Super + Space", "App launcher (fuzzel)"),
+        ("Super + Shift + F", "File manager (nautilus)"),
+        ("Super + Shift + B", "Browser (firefox)"),
+        ("Super + Ctrl + V", "Clipboard history"),
+        ("Super + Shift + W", "Wallpaper picker"),
+        ("Super + /", "This cheatsheet"),
+    ],
+    "Session": [
+        ("Super + Escape", "Power menu"),
+        ("Super + L", "Lock screen"),
+        ("Super + Shift + Escape", "Exit Hyprland"),
+    ],
+    "Windows": [
+        ("Super + W", "Close window"),
+        ("Super + F", "Fullscreen"),
+        ("Super + T", "Toggle floating"),
+        ("Super + P", "Pseudo-tile"),
+        ("Super + Left click drag", "Move window"),
+        ("Super + Right click drag", "Resize window"),
+    ],
+    "Focus": [
+        ("Super + Arrows", "Focus left / right / up / down"),
+        ("Super + Home", "Focus first column"),
+        ("Super + End", "Focus last column"),
+    ],
+    "Move": [
+        ("Super + Shift + Left/Right", "Swap column left / right"),
+        ("Super + Ctrl + Left/Right", "Swap column left / right"),
+        ("Super + Shift + Up/Down", "Move window up / down"),
+        ("Super + [", "Consume or expel (previous)"),
+        ("Super + ]", "Consume or expel (next)"),
+        ("Super + ,", "Consume window into column"),
+        ("Super + .", "Expel window from column"),
+    ],
+    "Column size": [
+        ("Super + R", "Next preset width"),
+        ("Super + Shift + R", "Previous preset width"),
+        ("Super + M", "Maximize column width"),
+        ("Super + C", "Fit active column"),
+        ("Super + - / =", "Width -10% / +10%"),
+        ("Super + Shift + - / =", "Height -60px / +60px"),
+    ],
+    "Workspaces": [
+        ("Super + 1-9", "Go to workspace"),
+        ("Super + Shift + 1-9", "Move window to workspace"),
+        ("Super + Tab", "Next workspace"),
+        ("Super + Shift + Tab", "Previous workspace"),
+        ("Super + Scroll", "Cycle workspaces"),
+        ("3-finger swipe ↔", "Scroll columns"),
+        ("3-finger swipe ↕", "Switch workspace"),
+    ],
+    "Screenshots": [
+        ("Print", "Region → edit in swappy"),
+        ("Shift + Print", "Full screen → clipboard"),
+    ],
+    "Media": [
+        ("Volume keys", "Volume up / down / mute"),
+        ("Mic mute key", "Mute microphone"),
+        ("Brightness keys", "Brightness up / down"),
+        ("Play / Next / Prev", "Media control"),
+    ],
+    "French (AltGr = Right Alt)": [
+        ("AltGr + e", "é   (+ Shift: É)"),
+        ("AltGr + `, then letter", "è à ù"),
+        ("AltGr + 6, then letter", "ê â î ô û"),
+        ("AltGr + Shift + ', then letter", "ë ï ü"),
+        ("AltGr + ,", "ç   (+ Shift: Ç)"),
+        ("AltGr + k", "œ   (+ Shift: Œ)"),
+        ("AltGr + z", "æ   (+ Shift: Æ)"),
+        ("AltGr + [  /  ]", "«  »"),
+        ("Shift on the letter", "Capitals after dead keys (Ê, È…)"),
+    ],
+}
+
+
+def build_rows(query):
+    q = query.lower()
+    rows = []
+    for section, items in SHORTCUTS.items():
+        hits = [i for i in items
+                if not q or q in f"{section} {i[0]} {i[1]}".lower()]
+        if hits:
+            if rows:
+                rows.append(("blank", "", ""))
+            rows.append(("section", section, ""))
+            rows.extend(("item", k, d) for k, d in hits)
+    return rows
+
+
+def main(scr):
+    curses.curs_set(0)
+    curses.use_default_colors()
+    # Monochrome to match foot/waybar/fuzzel: #2c2c2c text, #565656 and #8a8a8a grays
+    rich = curses.COLORS >= 256
+    curses.init_pair(1, 240 if rich else -1, -1)
+    curses.init_pair(2, 245 if rich else -1, -1)
+    section = curses.A_REVERSE | curses.A_BOLD
+    key = curses.A_BOLD
+    desc = curses.color_pair(1)
+    dim = curses.color_pair(2) if rich else curses.A_DIM
+    keyw = max(len(k) for items in SHORTCUTS.values() for k, _ in items) + 3
+    query, top = "", 0
+
+    while True:
+        rows = build_rows(query)
+        h, w = scr.getmaxyx()
+        view = max(h - 3, 1)
+        top = max(0, min(top, len(rows) - view))
+
+        scr.erase()
+        scr.addnstr(0, 1, "Search: ", w - 2, curses.A_BOLD)
+        scr.addnstr(0, 9, query + "▏", max(w - 10, 0))
+        for y, (kind, a, b) in enumerate(rows[top:top + view], start=2):
+            if kind == "section":
+                scr.addnstr(y, 1, f" {a} ", w - 2, section)
+            elif kind == "item":
+                scr.addnstr(y, 3, a, w - 4, key)
+                if 3 + keyw < w:
+                    scr.addnstr(y, 3 + keyw, b, w - 4 - keyw, desc)
+        if not rows:
+            scr.addnstr(2, 3, "No matches", w - 4, dim)
+        hint = "type to filter · ↑↓ PgUp PgDn scroll · Esc clear/close"
+        scr.addnstr(h - 1, 1, hint, w - 2, dim)
+        scr.refresh()
+
+        ch = scr.get_wch()
+        if ch == "\x1b":
+            if not query:
+                return
+            query, top = "", 0
+        elif ch in (curses.KEY_BACKSPACE, "\x7f", "\b"):
+            query, top = query[:-1], 0
+        elif ch == curses.KEY_UP:
+            top -= 1
+        elif ch == curses.KEY_DOWN:
+            top += 1
+        elif ch == curses.KEY_PPAGE:
+            top -= view
+        elif ch == curses.KEY_NPAGE:
+            top += view
+        elif isinstance(ch, str) and ch.isprintable():
+            query, top = query + ch, 0
+
+
+if __name__ == "__main__":
+    if sys.argv[1:] == ["--tui"]:
+        os.environ.setdefault("ESCDELAY", "25")
+        try:
+            curses.wrapper(main)
+        except KeyboardInterrupt:
+            pass
+    else:
+        os.execvp("foot", ["foot", "--app-id", "keys", "--title", "shortcuts",
+                           os.path.abspath(sys.argv[0]), "--tui"])

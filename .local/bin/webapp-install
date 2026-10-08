@@ -1,0 +1,51 @@
+#!/bin/bash
+# Create a launcher entry that opens a website as a standalone Chromium app window.
+# Usage: webapp-install [name] [url] [icon-url]   (missing values are prompted with gum)
+set -euo pipefail
+
+APPS_DIR="$HOME/.local/share/applications"
+ICON_DIR="$APPS_DIR/icons"
+mkdir -p "$ICON_DIR"
+
+for dep in gum chromium-browser; do
+  command -v "$dep" >/dev/null || { echo "Missing dependency: $dep (sudo dnf install gum chromium)"; exit 1; }
+done
+
+name="${1:-$(gum input --prompt "Name> " --placeholder "e.g. WhatsApp")}"
+url="${2:-$(gum input --prompt "URL> " --placeholder "https://web.whatsapp.com")}"
+icon_url="${3:-$(gum input --prompt "Icon URL> " --placeholder "PNG URL, leave empty to use the site favicon")}"
+
+[[ -z "$name" || -z "$url" ]] && { echo "Name and URL are required."; exit 1; }
+[[ "$url" =~ ^https?:// ]] || url="https://$url"
+
+slug="$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/^-//; s/-$//')"
+domain="$(echo "$url" | sed -E 's#^https?://([^/:]+).*#\1#')"
+icon_path="$ICON_DIR/$slug.png"
+desktop_file="$APPS_DIR/webapp-$slug.desktop"
+
+if [[ -e "$desktop_file" ]] && ! gum confirm "Web app '$name' already exists. Overwrite?"; then
+  exit 0
+fi
+
+[[ -z "$icon_url" ]] && icon_url="https://www.google.com/s2/favicons?domain=$domain&sz=256"
+if ! gum spin --title "Downloading icon..." -- curl -fsSL -o "$icon_path" "$icon_url"; then
+  echo "Could not download icon, using a generic one."
+  icon_path="web-browser"
+fi
+
+cat > "$desktop_file" <<EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=$name
+Comment=$name web app
+Exec=chromium-browser --new-window --ozone-platform=wayland "--app=${url//%/%%}"
+Icon=$icon_path
+Terminal=false
+StartupNotify=true
+X-Webapp=true
+EOF
+chmod +x "$desktop_file"
+update-desktop-database "$APPS_DIR" 2>/dev/null || true
+
+gum style --foreground 212 "✔ '$name' installed — find it in your app launcher."

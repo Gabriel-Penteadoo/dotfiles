@@ -1,0 +1,36 @@
+#!/bin/bash
+# Remove web apps created by webapp-install.
+# Usage: webapp-remove [name...]   (without names, pick from a gum list)
+set -euo pipefail
+
+APPS_DIR="$HOME/.local/share/applications"
+ICON_DIR="$APPS_DIR/icons"
+
+command -v gum >/dev/null || { echo "Missing dependency: gum (sudo dnf install gum)"; exit 1; }
+
+mapfile -t files < <(grep -l '^X-Webapp=true' "$APPS_DIR"/webapp-*.desktop 2>/dev/null || true)
+[[ ${#files[@]} -eq 0 ]] && { echo "No web apps installed."; exit 0; }
+
+declare -A by_name
+for f in "${files[@]}"; do
+  by_name["$(sed -n 's/^Name=//p' "$f" | head -1)"]="$f"
+done
+
+if [[ $# -gt 0 ]]; then
+  selected=("$@")
+else
+  mapfile -t selected < <(printf '%s\n' "${!by_name[@]}" | sort | gum choose --no-limit --header "Select web apps to remove (space to mark, enter to confirm)")
+fi
+[[ ${#selected[@]} -eq 0 ]] && exit 0
+
+gum confirm "Remove: ${selected[*]}?" || exit 0
+
+for name in "${selected[@]}"; do
+  f="${by_name[$name]:-}"
+  [[ -z "$f" ]] && { echo "Not found: $name"; continue; }
+  icon="$(sed -n 's/^Icon=//p' "$f" | head -1)"
+  [[ "$icon" == "$ICON_DIR/"* ]] && rm -f "$icon"
+  rm -f "$f"
+  echo "Removed $name"
+done
+update-desktop-database "$APPS_DIR" 2>/dev/null || true

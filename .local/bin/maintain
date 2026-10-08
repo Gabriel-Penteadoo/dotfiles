@@ -1,0 +1,112 @@
+#!/bin/bash
+# maintain -> step-by-step upkeep for this Hyprland setup. Asks before each step.
+#   1. check    validate Hyprland and fuzzel configs
+#   2. backups  find stray *.bak / *.orig / *~ files, archive and remove them
+#   3. dotfiles snapshot configs and scripts into the bare repo (~/.dotfiles)
+#   4. update   run sysupdate (dnf, flatpak, firmware, snapshots)
+#   5. clean    dnf autoremove, old caches, journal, trash
+# maintain            run all steps, asking before each
+# maintain <step>...  run only the named steps (still confirms anything destructive)
+set -uo pipefail
+
+ARCHIVE="$HOME/.local/share/dotfiles-archive"
+SCAN_DIRS=(.config/hypr .config/waybar .config/fuzzel .config/mako .config/foot .local/bin)
+# Files kept in the dotfiles repo, relative to $HOME
+TRACK=(
+    .bashrc.d/dotfiles
+    .config/hypr/hyprland.lua .config/hypr/hypridle.conf .config/hypr/hyprlock.conf
+    .config/waybar/config.jsonc .config/waybar/style.css .config/waybar/scripts/cava.sh
+    .config/fuzzel/fuzzel.ini .config/mako/config .config/foot/foot.ini
+    .local/bin/maintain .local/bin/sysupdate .local/bin/keys .local/bin/powermenu
+    .local/bin/wallpick .local/bin/setbg .local/bin/vpn
+    .local/bin/webapp-install .local/bin/webapp-remove
+)
+
+bold() { printf '\n\e[1;34m==> %s\e[0m\n' "$*"; }
+warn() { printf '\e[1;33m!!  %s\e[0m\n' "$*"; }
+ok()   { printf '    %s\n' "$*"; }
+dot()  { git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" "$@"; }
+ask()  { read -rp "    $1 [Y/n] " r; [[ -z "$r" || "$r" == [yY]* ]]; }
+
+step_check() {
+    bold "1. Check configs"
+    if Hyprland --verify-config -c "$HOME/.config/hypr/hyprland.lua" 2>&1 | grep -q 'config ok'; then
+        ok "Hyprland: OK"
+    else
+        warn "Hyprland config has errors:"
+        Hyprland --verify-config -c "$HOME/.config/hypr/hyprland.lua" 2>&1 | grep -i error | sed 's/^/    /'
+    fi
+    if out=$(fuzzel --check-config 2>&1); then ok "fuzzel: OK"; else warn "fuzzel:"; echo "$out" | sed 's/^/    /'; fi
+    if hyprctl version >/dev/null 2>&1; then
+        errs=$(hyprctl configerrors 2>/dev/null | grep -v '^\s*$')
+        [[ -z "$errs" ]] && ok "Running session: no errors" || { warn "Running session:"; echo "$errs" | sed 's/^/    /'; }
+    fi
+}
+
+step_backups() {
+    bold "2. Stray backup files"
+    mapfile -t files < <(cd "$HOME" && find "${SCAN_DIRS[@]}" -maxdepth 2 -type f \
+        \( -name '*.bak*' -o -name '.*.bak*' -o -name '*.orig' -o -name '*~' \) 2>/dev/null)
+    if (( ${#files[@]} == 0 )); then ok "None found"; return; fi
+    printf '    %s\n' "${files[@]}"
+    if ask "Archive and remove these ${#files[@]} files?"; then
+        mkdir -p "$ARCHIVE"
+        tarball="$ARCHIVE/backups-$(date +%F-%H%M).tar.gz"
+        (cd "$HOME" && tar czf "$tarball" "${files[@]}" && rm -- "${files[@]}")
+        ok "Archived to $tarball"
+    fi
+}
+
+step_dotfiles() {
+    bold "3. Dotfiles snapshot"
+    (cd "$HOME" && for f in "${TRACK[@]}"; do [[ -e "$f" ]] && dot add -- "$f"; done)
+    dot add -u
+    if dot diff --cached --quiet; then ok "Nothing changed since last snapshot"; return; fi
+    dot -c color.status=always status --short | sed 's/^/    /'
+    if ask "Commit these changes?"; then
+        msg="Maintenance snapshot $(date +%F)"
+        $interactive && read -rp "    Message [$msg]: " m && msg=${m:-$msg}
+        dot commit -q -m "$msg" && ok "Committed: $msg"
+    else
+        dot reset -q
+    fi
+}
+
+step_update() {
+    bold "4. System update"
+    "$HOME/.local/bin/sysupdate"
+}
+
+step_clean() {
+    bold "5. Clean up"
+    if ask "Remove unneeded packages (dnf autoremove)?"; then sudo dnf autoremove; fi
+    if [[ -d "$HOME/.cache/wallpick/img" ]]; then
+        size=$(du -sh "$HOME/.cache/wallpick/img" | cut -f1)
+        if ask "Delete wallpaper previews unused for 30+ days (cache is $size)?"; then
+            find "$HOME/.cache/wallpick/img" -type f -atime +30 -delete
+            find "$HOME/.cache/wallpick/img" -mindepth 1 -type d -empty -delete
+        fi
+    fi
+    if ask "Trim system journal to the last 4 weeks?"; then sudo journalctl --vacuum-time=4weeks; fi
+    trash="$HOME/.local/share/Trash"
+    if [[ -n "$(ls -A "$trash/files" 2>/dev/null)" ]] && ask "Empty trash ($(du -sh "$trash" | cut -f1))?"; then
+        rm -rf "${trash:?}/files" "${trash:?}/info" && mkdir -p "$trash/files" "$trash/info"
+    fi
+    find "$ARCHIVE" -name '*.tar.gz' -mtime +90 -print -delete 2>/dev/null | sed 's/^/    removed old archive: /'
+    ok "Disk: $(df -h --output=avail,pcent / | tail -1 | awk '{print $1" free ("$2" used)"}')"
+}
+
+steps=(check backups dotfiles update clean)
+interactive=true
+if (( $# )); then steps=("$@"); interactive=false; fi
+
+for s in "${steps[@]}"; do
+    if ! declare -F "step_$s" >/dev/null; then warn "Unknown step: $s (use: check backups dotfiles update clean)"; exit 1; fi
+    if $interactive && [[ $s != check ]]; then
+        read -rp $'\n'"Run step '$s'? [Y/n/q] " r
+        [[ "$r" == [qQ]* ]] && exit 0
+        [[ -n "$r" && "$r" != [yY]* ]] && continue
+    fi
+    "step_$s"
+done
+bold "Done"

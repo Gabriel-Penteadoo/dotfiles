@@ -1,0 +1,82 @@
+#!/bin/sh
+# Wallpaper picker: local images in ~/Pictures plus the dharmx/walls repo.
+# Opens a floating foot window with fzf and a sixel preview (chafa); repo
+# images are downloaded on highlight into a cache, and the chosen one is kept
+# in ~/Pictures/walls before being applied via setbg.
+#   wallpick              open the picker window
+#   wallpick --tui        run the picker in the current terminal
+#   wallpick --preview X  (internal) draw a preview for entry X
+dir="$HOME/Pictures"
+repo="dharmx/walls"
+branch="main"
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/wallpick"
+list="$cache/walls.txt"
+imgcache="$cache/img"
+
+# Print the local path for an entry, downloading it into the cache if needed
+fetch() {
+    [ -f "$dir/$1" ] && { printf '%s\n' "$dir/$1"; return; }
+    path=${1#walls/}
+    out="$imgcache/$path"
+    [ -f "$out" ] && { printf '%s\n' "$out"; return; }
+    url="https://raw.githubusercontent.com/$repo/$branch/$(printf '%s' "$path" | python3 -I -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read()))')"
+    mkdir -p "$(dirname "$out")"
+    if curl -fsSL "$url" -o "$out.$$" && file -b --mime-type "$out.$$" | grep -q '^image/'; then
+        mv "$out.$$" "$out" && printf '%s\n' "$out"
+    else
+        rm -f "$out.$$"
+        return 1
+    fi
+}
+
+case "$1" in
+--preview)
+    printf 'loading…'
+    f=$(fetch "$2") || { printf '\rdownload failed\n'; exit 0; }
+    printf '\r        \r'
+    chafa -f sixel -s "${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}" --animate off "$f"
+    exit 0
+    ;;
+--tui)
+    ;;
+*)
+    exec foot --app-id wallpick --title wallpaper "$0" --tui
+    ;;
+esac
+
+mkdir -p "$imgcache"
+# Drop previews not looked at for 3 days
+find "$imgcache" -type f -mtime +3 -delete 2>/dev/null
+find "$imgcache" -mindepth 1 -type d -empty -delete 2>/dev/null
+
+# Refresh the remote file list weekly (one GitHub API call); keep the old list on failure
+if [ ! -s "$list" ] || [ -n "$(find "$list" -mtime +7)" ]; then
+    curl -fsSL "https://api.github.com/repos/$repo/git/trees/$branch?recursive=1" |
+        python3 -I -c '
+import json, sys
+for e in json.load(sys.stdin)["tree"]:
+    p = e["path"]
+    if e["type"] == "blob" and p.lower().endswith((".jpg", ".jpeg", ".png", ".webp")) \
+            and ".." not in p.split("/") and not p.startswith("/"):
+        print(p)' > "$list.tmp" && [ -s "$list.tmp" ] && mv "$list.tmp" "$list"
+    rm -f "$list.tmp"
+fi
+
+choice=$(
+    {
+        cd "$dir" && find . -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | sed 's|^\./||'
+        [ -s "$list" ] && sed 's|^|walls/|' "$list"
+    } | sort -u | fzf --prompt 'wallpaper> ' --layout reverse --border none --color bw \
+        --preview "'$0' --preview {}" --preview-window 'right,65%,border-left'
+) || exit 0
+[ -n "$choice" ] || exit 0
+
+printf 'Setting %s…\n' "$choice"
+src=$(fetch "$choice") || { notify-send -u critical "Wallpaper" "Download failed: $choice"; exit 1; }
+file="$dir/$choice"
+if [ "$src" != "$file" ]; then
+    mkdir -p "$(dirname "$file")"
+    mv "$src" "$file"
+fi
+# New session so swaybg survives this terminal closing
+setsid -f "$HOME/.local/bin/setbg" "$file"
