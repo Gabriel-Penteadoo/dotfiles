@@ -1,7 +1,8 @@
 #!/bin/bash
 # Machine docs picker via fuzzel (SUPER+D): this setup's own documentation.
-# Entries are "label|target"; .md files open with the default app (Omawrite),
-# "keys" opens the SUPER+/ cheatsheet. Add a line to DOCS to list another doc.
+# Entries are "label|target"; .md files open read-only in a floating foot popup
+# (bat, scroll with arrows/PgUp/PgDn, / to search, q to close), "keys" opens the
+# SUPER+/ cheatsheet, anything else uses the default app. Add a line to DOCS to list another doc.
 DOCS=(
     "Setup reference — components, files, gotchas|$HOME/.claude/skills/setup/reference.md"
     "Setup workflow — making changes, validating, maintenance|$HOME/.claude/skills/setup/SKILL.md"
@@ -14,6 +15,11 @@ choice=$(printf '%s\n' "${DOCS[@]%%|*}" \
 for d in "${DOCS[@]}"; do
     [ "${d%%|*}" = "$choice" ] || continue
     target=${d#*|}
-    if [ "$target" = keys ]; then exec ~/.local/bin/keys; fi
-    setsid -f xdg-open "$target" >/dev/null 2>&1
+    case "$target" in
+        keys) exec ~/.local/bin/keys ;;
+        *.md) exec setsid -f foot --app-id docview --title "$choice" \
+                  bat --paging=always --pager "less -R" --style=plain --theme=ansi \
+                      --wrap=auto --language=md "$target" ;;
+        *)    setsid -f xdg-open "$target" >/dev/null 2>&1 ;;
+    esac
 done

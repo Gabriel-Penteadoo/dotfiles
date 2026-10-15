@@ -46,7 +46,7 @@ Keep this file accurate: update it whenever a component, file, convention, or go
    (workspace switches instant on purpose).
 6. Gestures: 3-finger horizontal = scroll columns, vertical = workspace.
 7. Keybinds via local `bind(keys, dsp, opts)` = `SUPER + keys`. Raw `hl.bind` for unmodified keys.
-8. Window rules (`hl.window_rule{ name, match = { class = … }, … }`): wallpick and keys float
+8. Window rules (`hl.window_rule{ name, match = { class = … }, … }`): wallpick, keys and docview float
    centered; Celeste gets `immediate` (tearing).
 
 Key binds (mirror in `~/.local/bin/keys` when changing!): SUPER+Return terminal, Space
@@ -132,7 +132,7 @@ Rollback plugin versions: `:Lazy restore` (uses lazy-lock.json).
 | `maintain` | interactive upkeep: check / backups / dotfiles / update / clean (`TRACK=()` = files backed up) |
 | `keys` | SUPER+/ cheatsheet (Python TUI in a floating foot window). **Bind list is hardcoded.** |
 | `powermenu` | fuzzel menu: lock/suspend/logout/reboot/shutdown |
-| `docs` | fuzzel picker for machine docs (SUPER+D): this skill's reference.md / SKILL.md, `keys` cheatsheet, Omawrite README. Fixed `DOCS=("label|target")` list at the top; .md opens via `xdg-open` (Omawrite) |
+| `docs` | fuzzel picker for machine docs (SUPER+D): this skill's reference.md / SKILL.md, `keys` cheatsheet, Omawrite README. Fixed `DOCS=("label|target")` list at the top; .md opens read-only in a floating foot popup (app-id `docview`, window rule 1100x800 centered) with `bat --theme=ansi` + `less -R` (no `-F`, or short docs would close instantly) |
 | `emoji` | fuzzel emoji picker (SUPER+E): copies + types via `wtype` if installed. Data: `~/.local/share/emoji/emoji.txt`, generated from unicode.org `emoji-test.txt` (fully-qualified lines → `<emoji> <name>`) |
 | `wallpick` | wallpaper picker (fzf + chafa in foot; local ~/Pictures + dharmx/walls) → `setbg` |
 | `setbg <img>` | symlink image to `~/.config/wallpaper` and restart swaybg |

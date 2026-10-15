@@ -223,6 +223,15 @@ hl.window_rule({
     immediate = true,
 })
 
+-- Machine docs viewer (docs → bat in foot) as a centered floating window
+hl.window_rule({
+    name   = "docview",
+    match  = { class = "^(docview)$" },
+    float  = true,
+    size   = { 1100, 800 },
+    center = true,
+})
+
 -- Shortcut cheatsheet (keys) as a centered floating window
 hl.window_rule({
     name   = "keys",
