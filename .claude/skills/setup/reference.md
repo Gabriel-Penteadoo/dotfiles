@@ -83,7 +83,7 @@ Installed from COPR `scottames/ghostty` (not in Fedora repos). Version 1.3.
   normalised to 0..1; length = `mix(ANIMATION_LENGTH, ANIMATION_LENGTH*(1-TRAIL_SIZE), a)`;
   jumps of <= 2 cells on one line use `SHORT_ANIMATION_LENGTH` for all corners; critically
   damped spring (omega = 4/length, no overshoot); lengths <= `FRAME_DT` snap (60 Hz panel).
-  Pure Neovide only leans on diagonal moves. Added on top: `TILT` (-10) biases each corner's
+  Pure Neovide only leans on diagonal moves. Added on top: `TILT` (-1.0; above ~1.5 in magnitude the top edge lags as a whole and the trail becomes a plain slant) biases each corner's
   alignment along the move's perpendicular (bottom edge leads, top drags), and short jumps keep
   that per-corner spread scaled to `SHORT_ANIMATION_LENGTH` so typing leans too. `TILT = 0` = pure Neovide.
 - Tunables (same names/defaults as `vim.g.neovide_cursor_*`): `ANIMATION_LENGTH` 0.150,

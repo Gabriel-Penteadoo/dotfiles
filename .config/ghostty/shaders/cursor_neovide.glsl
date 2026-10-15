@@ -23,8 +23,10 @@ const float FRAME_DT = 1.0 / 60.0;          // display frame time; shorter anima
 
 // Added on top of Neovide: lean. Biases each corner's alignment toward one side
 // (top/bottom edge on horizontal moves), so one edge lands before the other.
-// <0 bottom leads (top drags behind), >0 top leads, 0 = pure Neovide
-const float TILT = -10.0;
+// <0 bottom leads (top drags behind), >0 top leads, 0 = pure Neovide.
+// Keep |TILT| <= ~1.5: beyond that the lean outweighs the travel direction, the
+// whole top edge lags as one and the trail turns into a plain slant
+const float TILT = -1.0;
 
 // Not part of Neovide's defaults (Neovim's default guicursor doesn't blink)
 const float BLINK_DELAY = 0.8;   // seconds after a move before blinking starts (<0 disables)
