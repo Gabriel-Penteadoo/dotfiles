@@ -133,6 +133,7 @@ bind("SHIFT + ESCAPE", hl.dsp.exit())
 bind("CTRL + V",       hl.dsp.exec_cmd("cliphist list | fuzzel --dmenu --prompt 'clipboard  ›  ' --width 60 | cliphist decode | wl-copy"))
 bind("SHIFT + W",      hl.dsp.exec_cmd("~/.local/bin/wallpick"))
 bind("E",              hl.dsp.exec_cmd("~/.local/bin/emoji"))
+bind("D",              hl.dsp.exec_cmd("~/.local/bin/docs"))
 bind("SLASH",          hl.dsp.exec_cmd("~/.local/bin/keys"))
 
 -- Universal clipboard: works in terminals and GUI apps alike

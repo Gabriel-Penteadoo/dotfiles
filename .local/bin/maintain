@@ -21,7 +21,7 @@ TRACK=(
     .config/nvim/init.lua .config/nvim/lazy-lock.json .config/nvim/lazyvim.json .config/nvim/lua
     .config/systemd/user/hyprland-session.target .config/systemd/user/wireplumber.service.d
     .local/bin/maintain .local/bin/sysupdate .local/bin/keys .local/bin/powermenu
-    .local/bin/wallpick .local/bin/setbg .local/bin/vpn .local/bin/emoji
+    .local/bin/wallpick .local/bin/setbg .local/bin/vpn .local/bin/emoji .local/bin/docs
     .local/share/emoji
     .local/bin/webapp-install .local/bin/webapp-remove
     .claude/skills/setup

@@ -1,0 +1,18 @@
+#!/bin/bash
+# Document picker via fuzzel: lists documents (md, txt, pdf, office files…) under
+# the folders below, newest first, and opens the chosen one with its default app
+# (xdg-open: md/txt → Omawrite, pdf → browser, office → LibreOffice).
+# Add folders to DIRS or extensions to EXTS to widen it.
+DIRS=(~/Documents ~/Downloads ~/Desktop ~/Work ~/Projects)
+EXTS=(md markdown txt pdf doc docx odt rtf xls xlsx ods csv ppt pptx odp epub)
+
+name_args=()
+for e in "${EXTS[@]}"; do name_args+=(-o -iname "*.$e"); done
+
+choice=$(find "${DIRS[@]}" -maxdepth 4 \
+        \( -name node_modules -o -name .git \) -prune -o \
+        -type f \( "${name_args[@]:1}" \) -printf '%T@\t%p\n' 2>/dev/null \
+    | sort -rn | cut -f2- | sed "s|^$HOME|~|" \
+    | fuzzel --dmenu --prompt "docs  ›  " --width 70) || exit
+[ -n "$choice" ] || exit
+setsid -f xdg-open "${choice/#\~/$HOME}" >/dev/null 2>&1

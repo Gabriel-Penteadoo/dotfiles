@@ -18,6 +18,7 @@ SHORTCUTS = {
         ("Super + Ctrl + V", "Clipboard history"),
         ("Super + Shift + W", "Wallpaper picker"),
         ("Super + E", "Emoji picker"),
+        ("Super + D", "Documents picker"),
         ("Super + /", "This cheatsheet"),
     ],
     "Session": [
