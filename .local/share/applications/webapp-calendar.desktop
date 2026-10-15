@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Calendar
+Comment=Calendar web app
+Exec=chromium-browser --new-window --ozone-platform=wayland "--app=https://calendar.google.com/calendar/u/1/r"
+Icon=/home/gpenteado/.local/share/applications/icons/calendar.png
+Terminal=false
+StartupNotify=true
+X-Webapp=true

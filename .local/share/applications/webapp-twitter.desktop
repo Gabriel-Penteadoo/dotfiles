@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Twitter
+Comment=Twitter web app
+Exec=chromium-browser --new-window --ozone-platform=wayland "--app=https://x.com/home"
+Icon=/home/gpenteado/.local/share/applications/icons/twitter.png
+Terminal=false
+StartupNotify=true
+X-Webapp=true

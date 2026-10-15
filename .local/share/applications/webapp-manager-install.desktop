@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Web App Install
+Comment=Install a website as a launcher app
+Exec=/home/gpenteado/.local/bin/webapp-install
+Icon=web-browser
+Terminal=true

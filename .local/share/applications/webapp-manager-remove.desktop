@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Web App Remove
+Comment=Remove a website as a launcher app
+Exec=/home/gpenteado/.local/bin/webapp-remove
+Icon=web-browser
+Terminal=true

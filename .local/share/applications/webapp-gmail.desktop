@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Gmail
+Comment=Gmail web app
+Exec=chromium-browser --new-window --ozone-platform=wayland "--app=https://mail.google.com/mail/u/1/#inbox"
+Icon=/home/gpenteado/.local/share/applications/icons/gmail.png
+Terminal=false
+StartupNotify=true
+X-Webapp=true
