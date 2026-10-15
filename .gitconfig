@@ -6,6 +6,6 @@
 	helper = !/usr/bin/gh auth git-credential
 [user]
 	name = Gabriel Penteado
-	email = gabrielmeira13v2.0@gmail.com
+	email = gabrielpenteado131@gmail.com
 [includeIf "gitdir:~/Work/"]
 	path = ~/.config/git/work.gitconfig
