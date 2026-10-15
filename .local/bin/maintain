@@ -2,7 +2,7 @@
 # maintain -> step-by-step upkeep for this Hyprland setup. Asks before each step.
 #   1. check    validate Hyprland, fuzzel, shell, Ghostty, Waybar, mako, Neovim and the docs viewer
 #   2. backups  find stray *.bak / *.orig / *~ files, archive and remove them
-#   3. dotfiles commit config changes to the bare repo (~/.dotfiles), offer new files
+#   3. dotfiles commit config changes to the bare repo (~/.dotfiles), offer new files, push to GitHub
 #   4. update   run sysupdate (dnf, flatpak, firmware, snapshots)
 #   5. clean    dnf autoremove, old caches, journal, trash
 # maintain            run all steps, asking before each
@@ -91,14 +91,23 @@ step_dotfiles() {
         fi
     fi
     dot add -u
-    if dot diff --cached --quiet; then ok "Nothing changed since last snapshot"; return; fi
-    dot -c color.status=always status --short | sed 's/^/    /'
-    if ask "Commit these changes?"; then
-        msg="Maintenance snapshot $(date +%F)"
-        $interactive && read -rp "    Message [$msg]: " m && msg=${m:-$msg}
-        dot commit -q -m "$msg" && ok "Committed: $msg"
+    if dot diff --cached --quiet; then
+        ok "Nothing changed since last snapshot"
     else
-        dot reset -q
+        dot -c color.status=always status --short | sed 's/^/    /'
+        if ask "Commit these changes?"; then
+            msg="Maintenance snapshot $(date +%F)"
+            $interactive && read -rp "    Message [$msg]: " m && msg=${m:-$msg}
+            dot commit -q -m "$msg" && ok "Committed: $msg"
+        else
+            dot reset -q
+        fi
+    fi
+    # Push unpushed commits to GitHub (origin)
+    dot remote get-url origin >/dev/null 2>&1 || return
+    ahead=$(dot rev-list --count '@{u}..HEAD' 2>/dev/null || echo 0)
+    if (( ahead > 0 )) && ask "Push $ahead commit(s) to GitHub?"; then
+        dot push -q && ok "Pushed to $(dot remote get-url origin)"
     fi
 }
 

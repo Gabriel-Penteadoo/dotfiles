@@ -29,7 +29,8 @@ the relevant section before editing a component.
 6. **Record it:**
    - Commit to dotfiles: `git --git-dir=$HOME/.dotfiles --work-tree=$HOME add <files> && … commit -m "<component>: <what>"`
      (the alias `dot` only exists in interactive shells). Only commit files you changed;
-     leave the user's other uncommitted edits alone unless asked. Don't push (no remote).
+     leave the user's other uncommitted edits alone unless asked. Then `… push` to GitHub
+     (`origin`, **public** repo: never commit secrets or work-internal URLs; see reference.md).
    - New config file → `dot add` it. It must sit under a folder in `WATCH=(…)` in
      `~/.local/bin/maintain` (add the folder if not), so future snapshots keep it.
      Files to never back up go in `~/.dotfiles/info/exclude`.

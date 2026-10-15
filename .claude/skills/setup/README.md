@@ -69,7 +69,9 @@ turns red when the last command failed.
 | Something else | Ask Claude: it knows this setup (`~/.claude/skills/setup`) |
 
 `dot` is git for the dotfiles repo (`~/.dotfiles`, files live in place in `~`).
-Every config change is committed there, so any earlier version can come back.
+Every config change is committed there, so any earlier version can come back, and pushed to
+GitHub (public), so a new machine can get it back. Work-only files (work web apps, `vpn`) stay
+off GitHub on purpose.
 
 ## Changing things
 

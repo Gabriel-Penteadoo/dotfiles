@@ -176,7 +176,13 @@ return early for non-interactive shells).
 
 ## Dotfiles repo
 
-- `git --git-dir=$HOME/.dotfiles --work-tree=$HOME …` (alias `dot`, interactive shells only), no remote.
+- `git --git-dir=$HOME/.dotfiles --work-tree=$HOME …` (alias `dot`, interactive shells only).
+- Remote `origin` = **public** GitHub repo (`gh` CLI, SSH). Push after committing;
+  `maintain dotfiles` offers to push unpushed commits. Before tracking a new file, check it
+  for secrets and work-internal URLs (Deezer infra, Slack IDs, GCP projects): those stay
+  local and go in `info/exclude` (the work webapps and `vpn` script already are).
+  Pre-publish history was stripped of them; the original is in
+  `~/.local/share/dotfiles-archive/dotfiles-before-github-2026-10-15.bundle`.
 - `status.showUntrackedFiles = no`: new files never show in `status`. `maintain dotfiles`
   lists untracked files under the `WATCH=(…)` folders in `maintain` and offers to add them.
   Deliberately untracked files (nvim starter boilerplate, `claude`/`omawrite` binaries, game
