@@ -7,73 +7,13 @@ import curses
 import os
 import sys
 
-SHORTCUTS = {
-    "Apps": [
-        ("Super + Return", "Terminal (ghostty)"),
-        ("Super + Space", "App launcher (fuzzel)"),
-        ("Super + Shift + F", "File manager (nautilus)"),
-        ("Super + Shift + B", "Browser (firefox)"),
-        ("Super + Shift + O", "Markdown writer (omawrite)"),
-        ("Super + C / X / V", "Copy / Cut / Paste (everywhere)"),
-        ("Super + Ctrl + V", "Clipboard history"),
-        ("Super + Shift + W", "Wallpaper picker"),
-        ("Super + E", "Emoji picker"),
-        ("Super + D", "Machine docs"),
-        ("Super + /", "This cheatsheet"),
-    ],
-    "Session": [
-        ("Super + Escape", "Power menu"),
-        ("Super + L", "Lock screen"),
-        ("Super + Shift + Escape", "Exit Hyprland"),
-    ],
-    "Windows": [
-        ("Super + W", "Close window"),
-        ("Super + F", "Fullscreen"),
-        ("Super + T", "Toggle floating"),
-        ("Super + P", "Pseudo-tile"),
-        ("Super + Left click drag", "Move window"),
-        ("Super + Right click drag", "Resize window"),
-    ],
-    "Focus": [
-        ("Super + Arrows", "Focus left / right / up / down"),
-        ("Super + Home", "Focus first column"),
-        ("Super + End", "Focus last column"),
-    ],
-    "Move": [
-        ("Super + Shift + Left/Right", "Swap column left / right"),
-        ("Super + Ctrl + Left/Right", "Swap column left / right"),
-        ("Super + Shift + Up/Down", "Move window up / down"),
-        ("Super + [", "Consume or expel (previous)"),
-        ("Super + ]", "Consume or expel (next)"),
-        ("Super + ,", "Consume window into column"),
-        ("Super + .", "Expel window from column"),
-    ],
-    "Column size": [
-        ("Super + R", "Next preset width"),
-        ("Super + Shift + R", "Previous preset width"),
-        ("Super + M", "Maximize column width"),
-        ("Super + Shift + C", "Fit active column"),
-        ("Super + - / =", "Width -10% / +10%"),
-        ("Super + Shift + - / =", "Height -60px / +60px"),
-    ],
+# Hyprland binds come live from `hyprctl binds -j`: every bind in hyprland.lua
+# with a description "Section|What it does[|key label]" is listed, in config
+# order. Only things that aren't binds (gestures, AltGr characters) live here.
+EXTRA = {
     "Workspaces": [
-        ("Super + 1-9", "Go to workspace"),
-        ("Super + Shift + 1-9", "Move window to workspace"),
-        ("Super + Tab", "Next workspace"),
-        ("Super + Shift + Tab", "Previous workspace"),
-        ("Super + Scroll", "Cycle workspaces"),
         ("3-finger swipe ↔", "Scroll columns"),
         ("3-finger swipe ↕", "Switch workspace"),
-    ],
-    "Screenshots": [
-        ("Print", "Region → edit in swappy"),
-        ("Shift + Print", "Full screen → clipboard"),
-    ],
-    "Media": [
-        ("Volume keys", "Volume up / down / mute"),
-        ("Mic mute key", "Mute microphone"),
-        ("Brightness keys", "Brightness up / down"),
-        ("Play / Next / Prev", "Media control"),
     ],
     "French (AltGr = Right Alt)": [
         ("AltGr + e", "é   (+ Shift: É)"),
@@ -87,6 +27,47 @@ SHORTCUTS = {
         ("Shift on the letter", "Capitals after dead keys (Ê, È…)"),
     ],
 }
+
+# hyprctl modmask bits, in display order
+MODS = [(64, "Super"), (4, "Ctrl"), (8, "Alt"), (1, "Shift")]
+KEY_NAMES = {
+    "RETURN": "Return", "SPACE": "Space", "ESCAPE": "Escape", "TAB": "Tab",
+    "SLASH": "/", "BRACKETLEFT": "[", "BRACKETRIGHT": "]", "COMMA": ",",
+    "PERIOD": ".", "MINUS": "-", "EQUAL": "=", "PRINT": "Print",
+    "HOME": "Home", "END": "End", "LEFT": "Left", "RIGHT": "Right",
+    "UP": "Up", "DOWN": "Down",
+}
+
+
+def key_label(bind):
+    k = bind["key"]
+    name = KEY_NAMES.get(k.upper(), k.upper() if len(k) == 1 else k)
+    return " + ".join([m for bit, m in MODS if bind["modmask"] & bit] + [name])
+
+
+def load_shortcuts():
+    import json
+    import subprocess
+    sections = {}
+    try:
+        out = subprocess.run(["hyprctl", "binds", "-j"], capture_output=True,
+                             text=True, timeout=3).stdout
+        binds = json.loads(out)
+    except Exception:
+        binds = []
+        sections["Hyprland"] = [("(not running)", "hyprctl binds unavailable")]
+    for b in binds:
+        if not b.get("has_description"):
+            continue
+        section, _, rest = b["description"].partition("|")
+        desc, _, label = rest.partition("|")
+        sections.setdefault(section, []).append((label or key_label(b), desc))
+    for section, items in EXTRA.items():
+        sections.setdefault(section, []).extend(items)
+    return sections
+
+
+SHORTCUTS = {}
 
 
 def build_rows(query):
@@ -104,6 +85,7 @@ def build_rows(query):
 
 
 def main(scr):
+    SHORTCUTS.update(load_shortcuts())
     curses.curs_set(0)
     curses.use_default_colors()
     # Monochrome to match foot/waybar/fuzzel: #2c2c2c text, #565656 and #8a8a8a grays

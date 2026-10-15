@@ -116,94 +116,104 @@ hl.gesture({ fingers = 3, direction = "horizontal", action = "scroll_move" })
 hl.gesture({ fingers = 3, direction = "vertical",   action = "workspace" })
 
 -- ---------- Keybinds (Omarchy-style) ----------
-local function bind(keys, dsp, opts) hl.bind(mod .. " + " .. keys, dsp, opts) end
+-- desc = cheatsheet entry "Section|What it does[|key label]". ~/.local/bin/keys
+-- (SUPER+/) lists every bind that has one, live from `hyprctl binds -j`; binds
+-- sharing one cheatsheet line (arrows, C/X/V…) describe only the first.
+local function key(keys, dsp, desc, opts)
+    local o = { description = desc }
+    for k, v in pairs(opts or {}) do o[k] = v end
+    hl.bind(keys, dsp, o)
+end
+local function bind(keys, dsp, desc, opts) key(mod .. " + " .. keys, dsp, desc, opts) end
 
-bind("RETURN",         hl.dsp.exec_cmd(terminal))
-bind("SPACE",          hl.dsp.exec_cmd(menu))
-bind("W",              hl.dsp.window.close())
-bind("F",              hl.dsp.window.fullscreen())
-bind("T",              hl.dsp.window.float({ action = "toggle" }))
-bind("P",              hl.dsp.window.pseudo())
-bind("SHIFT + F",      hl.dsp.exec_cmd(fileManager))
-bind("SHIFT + B",      hl.dsp.exec_cmd(browser))
-bind("SHIFT + O",      hl.dsp.exec_cmd("~/.local/bin/omawrite"))
-bind("ESCAPE",         hl.dsp.exec_cmd("~/.local/bin/powermenu"))
-bind("L",              hl.dsp.exec_cmd("loginctl lock-session"))
-bind("SHIFT + ESCAPE", hl.dsp.exit())
-bind("CTRL + V",       hl.dsp.exec_cmd("cliphist list | fuzzel --dmenu --prompt 'clipboard  ›  ' --width 60 | cliphist decode | wl-copy"))
-bind("SHIFT + W",      hl.dsp.exec_cmd("~/.local/bin/wallpick"))
-bind("E",              hl.dsp.exec_cmd("~/.local/bin/emoji"))
-bind("D",              hl.dsp.exec_cmd("~/.local/bin/docs"))
-bind("SLASH",          hl.dsp.exec_cmd("~/.local/bin/keys"))
+bind("RETURN",         hl.dsp.exec_cmd(terminal), "Apps|Terminal (ghostty)")
+bind("SPACE",          hl.dsp.exec_cmd(menu), "Apps|App launcher (fuzzel)")
+bind("W",              hl.dsp.window.close(), "Windows|Close window")
+bind("F",              hl.dsp.window.fullscreen(), "Windows|Fullscreen")
+bind("T",              hl.dsp.window.float({ action = "toggle" }), "Windows|Toggle floating")
+bind("P",              hl.dsp.window.pseudo(), "Windows|Pseudo-tile")
+bind("SHIFT + F",      hl.dsp.exec_cmd(fileManager), "Apps|File manager (nautilus)")
+bind("SHIFT + B",      hl.dsp.exec_cmd(browser), "Apps|Browser (firefox)")
+bind("SHIFT + O",      hl.dsp.exec_cmd("~/.local/bin/omawrite"), "Apps|Markdown writer (omawrite)")
+bind("ESCAPE",         hl.dsp.exec_cmd("~/.local/bin/powermenu"), "Session|Power menu")
+bind("L",              hl.dsp.exec_cmd("loginctl lock-session"), "Session|Lock screen")
+bind("SHIFT + ESCAPE", hl.dsp.exit(), "Session|Exit Hyprland")
+bind("CTRL + V",       hl.dsp.exec_cmd("cliphist list | fuzzel --dmenu --prompt 'clipboard  ›  ' --width 60 | cliphist decode | wl-copy"), "Apps|Clipboard history")
+bind("SHIFT + W",      hl.dsp.exec_cmd("~/.local/bin/wallpick"), "Apps|Wallpaper picker")
+bind("E",              hl.dsp.exec_cmd("~/.local/bin/emoji"), "Apps|Emoji picker")
+bind("D",              hl.dsp.exec_cmd("~/.local/bin/docs"), "Apps|Machine docs")
+bind("SLASH",          hl.dsp.exec_cmd("~/.local/bin/keys"), "Apps|This cheatsheet")
 
 -- Universal clipboard: works in terminals and GUI apps alike
 -- (Ctrl+Insert / Shift+Insert are copy/paste in both)
-bind("C", hl.dsp.send_shortcut({ mods = "CTRL",  key = "Insert" }))
+bind("C", hl.dsp.send_shortcut({ mods = "CTRL",  key = "Insert" }), "Apps|Copy / Cut / Paste (everywhere)|Super + C / X / V")
 bind("V", hl.dsp.send_shortcut({ mods = "SHIFT", key = "Insert" }))
 bind("X", hl.dsp.send_shortcut({ mods = "CTRL",  key = "X" }))
 
 -- Screenshots
-hl.bind("PRINT",         hl.dsp.exec_cmd('grim -g "$(slurp)" - | swappy -f -'))
-hl.bind("SHIFT + PRINT", hl.dsp.exec_cmd("grim - | wl-copy"))
+key("PRINT",         hl.dsp.exec_cmd('grim -g "$(slurp)" - | swappy -f -'), "Screenshots|Region → edit in swappy")
+key("SHIFT + PRINT", hl.dsp.exec_cmd("grim - | wl-copy"), "Screenshots|Full screen → clipboard")
 
 -- Focus
-bind("LEFT",  hl.dsp.focus({ direction = "left" }))
+bind("LEFT",  hl.dsp.focus({ direction = "left" }), "Focus|Focus left / right / up / down|Super + Arrows")
 bind("RIGHT", hl.dsp.focus({ direction = "right" }))
 bind("UP",    hl.dsp.focus({ direction = "up" }))
 bind("DOWN",  hl.dsp.focus({ direction = "down" }))
 
-bind("HOME", hl.dsp.layout("focus tobeg"))
-bind("END",  hl.dsp.layout("focus toend"))
+bind("HOME", hl.dsp.layout("focus tobeg"), "Focus|Focus first column")
+bind("END",  hl.dsp.layout("focus toend"), "Focus|Focus last column")
 
 -- Move windows (between/within columns)
-bind("SHIFT + LEFT",  hl.dsp.layout("swapcol l"))
+bind("SHIFT + LEFT",  hl.dsp.layout("swapcol l"), "Move|Swap column left / right|Super + Shift + Left/Right")
 bind("SHIFT + RIGHT", hl.dsp.layout("swapcol r"))
-bind("SHIFT + UP",    hl.dsp.window.move({ direction = "up" }))
+bind("SHIFT + UP",    hl.dsp.window.move({ direction = "up" }), "Move|Move window up / down|Super + Shift + Up/Down")
 bind("SHIFT + DOWN",  hl.dsp.window.move({ direction = "down" }))
 
 -- Move whole columns
-bind("CTRL + LEFT",  hl.dsp.layout("swapcol l"))
+bind("CTRL + LEFT",  hl.dsp.layout("swapcol l"), "Move|Swap column left / right|Super + Ctrl + Left/Right")
 bind("CTRL + RIGHT", hl.dsp.layout("swapcol r"))
 
 -- Consume / expel windows into / out of columns
-bind("BRACKETLEFT",  hl.dsp.layout("consume_or_expel prev"))
-bind("BRACKETRIGHT", hl.dsp.layout("consume_or_expel next"))
-bind("COMMA",        hl.dsp.layout("consume"))
-bind("PERIOD",       hl.dsp.layout("expel"))
+bind("BRACKETLEFT",  hl.dsp.layout("consume_or_expel prev"), "Move|Consume or expel (previous)")
+bind("BRACKETRIGHT", hl.dsp.layout("consume_or_expel next"), "Move|Consume or expel (next)")
+bind("COMMA",        hl.dsp.layout("consume"), "Move|Consume window into column")
+bind("PERIOD",       hl.dsp.layout("expel"), "Move|Expel window from column")
 
 -- Column width
-bind("R",             hl.dsp.layout("colresize +conf"))
-bind("SHIFT + R",     hl.dsp.layout("colresize -conf"))
-bind("M",             hl.dsp.layout("colresize 1.0"))
-bind("SHIFT + C",     hl.dsp.layout("fit active"))
-bind("MINUS",         hl.dsp.layout("colresize -0.1"))
+bind("R",             hl.dsp.layout("colresize +conf"), "Column size|Next preset width")
+bind("SHIFT + R",     hl.dsp.layout("colresize -conf"), "Column size|Previous preset width")
+bind("M",             hl.dsp.layout("colresize 1.0"), "Column size|Maximize column width")
+bind("SHIFT + C",     hl.dsp.layout("fit active"), "Column size|Fit active column")
+bind("MINUS",         hl.dsp.layout("colresize -0.1"), "Column size|Width -10% / +10%|Super + - / =")
 bind("EQUAL",         hl.dsp.layout("colresize +0.1"))
-bind("SHIFT + MINUS", hl.dsp.window.resize({ x = 0, y = -60, relative = true }))
+bind("SHIFT + MINUS", hl.dsp.window.resize({ x = 0, y = -60, relative = true }), "Column size|Height -60px / +60px|Super + Shift + - / =")
 bind("SHIFT + EQUAL", hl.dsp.window.resize({ x = 0, y = 60, relative = true }))
 
 -- Workspaces
 for i = 1, 9 do
-    bind(tostring(i),           hl.dsp.focus({ workspace = i }))
-    bind("SHIFT + " .. i,       hl.dsp.window.move({ workspace = i }))
+    bind(tostring(i),           hl.dsp.focus({ workspace = i }),
+         i == 1 and "Workspaces|Go to workspace|Super + 1-9" or nil)
+    bind("SHIFT + " .. i,       hl.dsp.window.move({ workspace = i }),
+         i == 1 and "Workspaces|Move window to workspace|Super + Shift + 1-9" or nil)
 end
-bind("TAB",         hl.dsp.focus({ workspace = "e+1" }))
-bind("SHIFT + TAB", hl.dsp.focus({ workspace = "e-1" }))
-bind("mouse_down",  hl.dsp.focus({ workspace = "e+1" }))
+bind("TAB",         hl.dsp.focus({ workspace = "e+1" }), "Workspaces|Next workspace")
+bind("SHIFT + TAB", hl.dsp.focus({ workspace = "e-1" }), "Workspaces|Previous workspace")
+bind("mouse_down",  hl.dsp.focus({ workspace = "e+1" }), "Workspaces|Cycle workspaces|Super + Scroll")
 bind("mouse_up",    hl.dsp.focus({ workspace = "e-1" }))
 
 -- Mouse move/resize
-bind("mouse:272", hl.dsp.window.drag(),   { mouse = true })
-bind("mouse:273", hl.dsp.window.resize(), { mouse = true })
+bind("mouse:272", hl.dsp.window.drag(),   "Windows|Move window|Super + Left click drag",    { mouse = true })
+bind("mouse:273", hl.dsp.window.resize(), "Windows|Resize window|Super + Right click drag", { mouse = true })
 
 -- Media / brightness keys
 local repeatLocked = { locked = true, repeating = true }
-hl.bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"), repeatLocked)
+key("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"), "Media|Volume up / down / mute|Volume keys", repeatLocked)
 hl.bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),        repeatLocked)
 hl.bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),       repeatLocked)
-hl.bind("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),     repeatLocked)
-hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl s 5%+"),                              repeatLocked)
+key("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),     "Media|Mute microphone|Mic mute key", repeatLocked)
+key("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl s 5%+"),                              "Media|Brightness up / down|Brightness keys", repeatLocked)
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl s 5%-"),                              repeatLocked)
-hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+key("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), "Media|Media control|Play / Next / Prev", { locked = true })
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"),       { locked = true })
 hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
 

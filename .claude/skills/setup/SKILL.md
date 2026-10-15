@@ -31,7 +31,8 @@ the relevant section before editing a component.
      leave the user's other uncommitted edits alone unless asked. Don't push (no remote).
    - New config file/dir that should be backed up → add it to `TRACK=(…)` in
      `~/.local/bin/maintain`.
-   - Changed a keybind → update the hardcoded list in `~/.local/bin/keys` (SUPER+/ cheatsheet).
+   - Added/changed a keybind → give it a `desc` ("Section|What it does") in `hyprland.lua`;
+     the SUPER+/ cheatsheet picks it up automatically.
    - Changed how a component works (new tool, new file, new convention, new gotcha) →
      update **reference.md** in this skill so the docs stay true.
 7. **Report** what changed, where, how to tweak it, and anything not verified visually.

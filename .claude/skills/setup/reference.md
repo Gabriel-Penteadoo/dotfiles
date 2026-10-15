@@ -46,15 +46,13 @@ Keep this file accurate: update it whenever a component, file, convention, or go
 5. Animations: global off; only fades, window move, open/close popin, border are on
    (workspace switches instant on purpose).
 6. Gestures: 3-finger horizontal = scroll columns, vertical = workspace.
-7. Keybinds via local `bind(keys, dsp, opts)` = `SUPER + keys`. Raw `hl.bind` for unmodified keys.
+7. Keybinds via local `bind(keys, dsp, desc, opts)` = `SUPER + keys`, and `key(…)` for unmodified
+   keys. `desc` = `"Section|What it does[|key label]"` is the cheatsheet entry: `keys` (SUPER+/)
+   reads described binds live from `hyprctl binds -j`. Binds sharing a line describe only the first.
 8. Window rules (`hl.window_rule{ name, match = { class = … }, … }`): wallpick, keys and docview float
    centered; Celeste gets `immediate` (tearing).
 
-Key binds (mirror in `~/.local/bin/keys` when changing!): SUPER+Return terminal, Space
-fuzzel, W close, F fullscreen, T float, L lock, Esc powermenu, Shift+Esc exit, Ctrl+V
-clipboard history, E emoji picker, D docs picker, Shift+W wallpick, / cheatsheet, C/V/X universal copy/paste/cut,
-arrows focus, Shift+arrows move, R/Shift+R/M/-/= column width, [ ] , . consume/expel,
-1-9 workspaces (+Shift move), Tab/Shift+Tab next/prev, Print = region screenshot → swappy.
+Key binds: see SUPER+/ (generated from `hyprland.lua`, so it is always current).
 
 Gotchas:
 - `misc.disable_hyprland_guiutils_check` is needed on Fedora (guiutils not packaged).
@@ -130,7 +128,7 @@ Rollback plugin versions: `:Lazy restore` (uses lazy-lock.json).
 |---|---|
 | `sysupdate` | dnf + flatpak + fwupd, Hyprland version diff + config check, snapper snapshots, reboot hint |
 | `maintain` | interactive upkeep: check / backups / dotfiles / update / clean (`TRACK=()` = files backed up) |
-| `keys` | SUPER+/ cheatsheet (Python TUI in a floating foot window). **Bind list is hardcoded.** |
+| `keys` | SUPER+/ cheatsheet (Python TUI in a floating foot window). Binds come live from `hyprctl binds -j` descriptions; only gestures and AltGr characters are hardcoded (`EXTRA`). |
 | `powermenu` | fuzzel menu: lock/suspend/logout/reboot/shutdown |
 | `docs` | fuzzel picker for machine docs (SUPER+D): this skill's reference.md / SKILL.md, `keys` cheatsheet, Omawrite README. Fixed `DOCS=("label|target")` list at the top; .md opens read-only in a floating foot popup (app-id `docview`, window rule 1100x800 centered): `nvim --clean -R -M --cmd "luafile ~/.config/docview/viewer.lua"`. viewer.lua loads LazyVim's installed `render-markdown.nvim` (anti_conceal off; raw md if the plugin goes away), sets monochrome heading groups (`RenderMarkdownH1..H6` fg, `H1Bg #bababa`, `H2Bg #cecece`, `H3Bg #dedede`, H4-6 no band), and maps Esc/q to quit. (Not bat+less: a lesskey `\e quit` binding makes arrow keys quit too — tested.) |
 | `emoji` | fuzzel emoji picker (SUPER+E): copies + types via `wtype` if installed. Data: `~/.local/share/emoji/emoji.txt`, generated from unicode.org `emoji-test.txt` (fully-qualified lines → `<emoji> <name>`) |
