@@ -70,6 +70,7 @@ turns red when the last command failed.
 
 **Work vs personal:** put work repos in `~/Work`. There git commits with your work email
 and `gh` talks to the work GitHub; everywhere else it's your personal account.
+Each GitHub has its own SSH key; you type a key's passphrase once per login, then it's remembered.
 
 `dot` is git for the dotfiles repo (`~/.dotfiles`, files live in place in `~`).
 Every config change is committed there, so any earlier version can come back, and pushed to

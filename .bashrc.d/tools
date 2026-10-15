@@ -35,3 +35,6 @@ fi
 if command -v direnv &>/dev/null; then
     eval "$(direnv hook bash)"
 fi
+
+# ssh-agent: systemd's ssh-agent.socket. Hyprland exports SSH_AUTH_SOCK; this covers TTY logins.
+export SSH_AUTH_SOCK=${SSH_AUTH_SOCK:-$XDG_RUNTIME_DIR/ssh-agent.socket}

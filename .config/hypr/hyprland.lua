@@ -29,6 +29,8 @@ end)
 
 hl.env("XCURSOR_SIZE", "24")
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
+-- systemd ssh-agent (ssh-agent.socket): keys unlocked once per login (AddKeysToAgent in ~/.ssh/config)
+hl.env("SSH_AUTH_SOCK", (os.getenv("XDG_RUNTIME_DIR") or "/run/user/1000") .. "/ssh-agent.socket")
 -- XWayland apps render at native res (see xwayland below), so Steam scales its own UI
 hl.env("STEAM_FORCE_DESKTOPUI_SCALING", "1.5")
 

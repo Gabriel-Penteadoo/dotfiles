@@ -199,7 +199,13 @@ Split is **by folder**: work repos live in `~/Work/`, personal ones anywhere els
 - gh: logged in on both hosts (`gh auth login --hostname <work host>`); inside a repo
   gh follows the remote, outside one `GH_HOST` decides.
 - SSH: `~/.ssh/id_ed25519` is the work key, pinned to the work host in `~/.ssh/config`
-  (not tracked); that host only answers on the work VPN. Personal pushes use HTTPS via gh.
+  (not tracked); that host only answers on the work VPN. Personal GitHub uses its own key
+  `~/.ssh/id_ed25519_personal` (pinned to `github.com`), gh `git_protocol ssh` on both hosts.
+  `IdentitiesOnly yes` per host = each server only ever sees its own key.
+- ssh-agent: systemd `ssh-agent.socket` (user unit, enabled). `SSH_AUTH_SOCK` is set by
+  `hl.env` in hyprland.lua (GUI apps, terminals) and `~/.bashrc.d/tools` (TTY). `AddKeysToAgent
+  yes` in `~/.ssh/config`: first use per login asks the passphrase, then it's cached.
+  `ssh-add -l` lists unlocked keys, `ssh-add -D` forgets them.
 - direnv (hook in `~/.bashrc.d/tools`): `~/Work/.envrc` sets `GH_HOST` and other work-only env;
   `direnv allow` after editing it.
 - Never commit work files to the public dotfiles: `work.gitconfig`, `~/.ssh/`, `~/Work/` are in
