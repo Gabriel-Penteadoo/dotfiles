@@ -71,7 +71,8 @@ Reload: `pkill -SIGUSR2 waybar`.
 
 Installed from COPR `scottames/ghostty` (not in Fedora repos). Version 1.3.
 `config`: JetBrainsMono Nerd Font 11, theme Catppuccin Mocha, `background-opacity = 0.9`
-(Hyprland blurs behind it), no decorations, block cursor.
+(Hyprland blurs behind it), no decorations, block cursor, touchpad scroll halved
+(`mouse-scroll-multiplier = precision:0.5,discrete:3`).
 
 **Animated cursor** — `custom-shader = shaders/cursor_neovide.glsl` (written for this setup):
 - Ghostty's own cursor is hidden (`cursor-opacity = 0`) and the shader draws the whole

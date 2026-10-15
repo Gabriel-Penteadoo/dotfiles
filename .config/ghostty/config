@@ -14,11 +14,14 @@ cursor-style = block
 cursor-style-blink = false
 shell-integration-features = no-cursor
 
-# Animated cursor trail (shaders in ./shaders, swap to try others)
+# Animated cursor trail (Neovide port + tilt, see the shader for settings)
 custom-shader = shaders/cursor_neovide.glsl
 custom-shader-animation = true
 
-# Hide Ghostty's own cursor; the shader draws it (with bounce) instead.
+# Hide Ghostty's own cursor; the shader draws it instead.
 # cursor-text keeps the character under the hidden cursor visible.
 cursor-opacity = 0
 cursor-text = cell-foreground
+
+# Scrolling: touchpad (precision) at half speed, mouse wheel unchanged (3 lines/notch)
+mouse-scroll-multiplier = precision:0.5,discrete:3
