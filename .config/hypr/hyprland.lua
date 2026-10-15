@@ -223,7 +223,7 @@ hl.window_rule({
     immediate = true,
 })
 
--- Machine docs viewer (docs → bat in foot) as a centered floating window
+-- Machine docs viewer (docs → nvim in foot) as a centered floating window
 hl.window_rule({
     name   = "docview",
     match  = { class = "^(docview)$" },
