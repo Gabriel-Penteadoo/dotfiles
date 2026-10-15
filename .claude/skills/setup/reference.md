@@ -141,3 +141,9 @@ Scripts start with a `#` usage header comment — keep that convention for new s
 - Session env exported to systemd for xdg-desktop-portal via `hyprland-session.target`.
 - Wireplumber drop-in: `~/.config/systemd/user/wireplumber.service.d/libcamera-tuning.conf`.
 - Display scale 1.5. Laptop (battery, fingerprint reader, brightness keys).
+- Apps built from source live in `~/src/`. **Omawrite** (Omarchy's Qt Markdown writer,
+  github.com/omacom/omawrite) is Arch-only upstream, so it's built with `bin/build` (qmake6; needs
+  `qt6-qtbase-devel qt6-qtdeclarative-devel gcc-c++ make`) and installed per-user:
+  `~/.local/bin/omawrite`, `~/.local/share/applications/omawrite.desktop`,
+  `~/.local/share/icons/hicolor/scalable/apps/omawrite.svg`. Update: `git -C ~/src/omawrite pull`,
+  `bin/build`, re-copy `build/omawrite` to `~/.local/bin`. sysupdate does not update it.
