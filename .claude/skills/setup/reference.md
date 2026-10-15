@@ -177,7 +177,7 @@ return early for non-interactive shells).
 ## Dotfiles repo
 
 - `git --git-dir=$HOME/.dotfiles --work-tree=$HOME …` (alias `dot`, interactive shells only).
-- Remote `origin` = **public** https://github.com/Gabriel-Penteadoo/dotfiles (HTTPS, auth via `gh` credential helper). Push after committing;
+- Remote `origin` = **public** https://github.com/Gabriel-Penteadoo/dotfiles (SSH, personal key `~/.ssh/id_ed25519_personal`). Push after committing;
   `maintain dotfiles` offers to push unpushed commits. Before tracking a new file, check it
   for secrets and work-internal URLs (Deezer infra, Slack IDs, GCP projects): those stay
   local and go in `info/exclude` (the work webapps and `vpn` script already are).
