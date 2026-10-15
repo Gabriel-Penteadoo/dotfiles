@@ -21,7 +21,7 @@ Keep this file accurate: update it whenever a component, file, convention, or go
 | Idle / lock | `~/.config/hypr/hypridle.conf`, `hyprlock.conf` (hyprlang syntax) |
 | Bar | `~/.config/waybar/config.jsonc`, `style.css`, `scripts/cava.sh` |
 | Terminal | Ghostty: `~/.config/ghostty/config`, `shaders/*.glsl` |
-| Old terminals | foot (`~/.config/foot/foot.ini`, still used by `keys`/`wallpick` popups), alacritty (no config, unused) |
+| Popup terminal | foot (`~/.config/foot/foot.ini`, light monochrome): used for the `keys`, `wallpick` and `docs` popups (fast start, matches the theme) |
 | Editor | Neovim 0.12 + LazyVim: `~/.config/nvim/` (custom plugins in `lua/plugins/`) |
 | Launcher | fuzzel: `~/.config/fuzzel/fuzzel.ini` |
 | Docs viewer | `~/.config/docview/viewer.lua` (used by `~/.local/bin/docs`) |
@@ -57,7 +57,6 @@ arrows focus, Shift+arrows move, R/Shift+R/M/-/= column width, [ ] , . consume/e
 1-9 workspaces (+Shift move), Tab/Shift+Tab next/prev, Print = region screenshot → swappy.
 
 Gotchas:
-- A `hyprland.lua.bak-*` file from an earlier change exists; `maintain backups` archives these.
 - `misc.disable_hyprland_guiutils_check` is needed on Fedora (guiutils not packaged).
 
 ## Waybar
