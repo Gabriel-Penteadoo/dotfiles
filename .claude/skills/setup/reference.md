@@ -82,10 +82,10 @@ Installed from COPR `scottames/ghostty` (not in Fedora repos). Version 1.3.
   Corners are clamped so a trailing corner never passes a leading one (prevents bow-ties).
 - Tunables at the top: `FREQUENCY`, `DAMPING`, `LEAD_SPEED`, `TRAIL_SPEED`, `TILT`,
   `BLINK_DELAY` (<0 disables), `BLINK_PERIOD`.
-- Other shaders in `shaders/`: `cursor_elastic.glsl` (own, simpler stretch),
-  `cursor_smear_fade.glsl` / `cursor_smear.glsl` / `cursor_blaze.glsl` (from
-  KroneCorylus/ghostty-shader-playground). Those assume a *visible* native cursor —
-  if switching back, remove `cursor-opacity = 0`.
+- Only `cursor_neovide.glsl` remains in `shaders/`. Removed alternatives (elastic,
+  smear, smear_fade, blaze) are in dotfiles history (commit "ghostty: remove unused
+  cursor shaders"); restore with `dot checkout <commit>^ -- .config/ghostty/shaders/<file>`.
+  The smear/blaze ones assume a *visible* native cursor — drop `cursor-opacity = 0` if used.
 
 Shader gotchas:
 - Uniforms available (1.3): `iCurrentCursor`/`iPreviousCursor` (x=left, y=top, z=w, w=h,
