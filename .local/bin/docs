@@ -5,8 +5,8 @@
 # rendered; arrows/PgUp/PgDn scroll, / searches, Esc or q closes), "keys" opens the
 # SUPER+/ cheatsheet, anything else uses the default app. Add a line to DOCS to list another doc.
 DOCS=(
-    "Setup reference — components, files, gotchas|$HOME/.claude/skills/setup/reference.md"
-    "Setup workflow — making changes, validating, maintenance|$HOME/.claude/skills/setup/SKILL.md"
+    "My machine — everyday use, upkeep, fixing things|$HOME/.claude/skills/setup/README.md"
+    "Setup reference — every component, file and gotcha|$HOME/.claude/skills/setup/reference.md"
     "Keybinds cheatsheet|keys"
     "Omawrite README (built from source)|$HOME/src/omawrite/README.md"
 )

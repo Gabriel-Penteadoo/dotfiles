@@ -35,6 +35,8 @@ the relevant section before editing a component.
      the SUPER+/ cheatsheet picks it up automatically.
    - Changed how a component works (new tool, new file, new convention, new gotcha) →
      update **reference.md** in this skill so the docs stay true.
+   - Changed something the user sees or does (shortcut they'd use daily, upkeep, recovery) →
+     update **README.md** (the user's own overview; plain language, no internals).
 7. **Report** what changed, where, how to tweak it, and anything not verified visually.
 
 ## Validate & reload cheat sheet
