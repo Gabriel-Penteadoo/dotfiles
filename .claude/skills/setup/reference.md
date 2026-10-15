@@ -78,10 +78,10 @@ Installed from COPR `scottames/ghostty` (not in Fedora repos). Version 1.3.
   cursor; `cursor-text = cell-foreground` keeps the glyph under it visible, and the shader
   re-inks it in the background color. `cursor-style-blink = false` — the shader blinks.
 - Each corner rides an underdamped spring; leading corners are faster (`LEAD_SPEED` vs
-  `TRAIL_SPEED`), `TILT` sets the lean: >0 top edge leads (leans forward), <0 (current, -1.0) bottom leads so the top drags behind.
+  `TRAIL_SPEED`), `TILT` sets the lean: >0 top edge leads (leans forward), <0 bottom leads so the top drags behind (current -10 = almost pure lean). Lag is distance-proportional, so `MAX_LAG` (cells) soft-caps it with tanh: small typing moves lean visibly, big jumps stay tame.
   Corners are clamped so a trailing corner never passes a leading one (prevents bow-ties).
 - Tunables at the top: `FREQUENCY`, `DAMPING`, `LEAD_SPEED`, `TRAIL_SPEED`, `TILT`,
-  `BLINK_DELAY` (<0 disables), `BLINK_PERIOD`.
+  `MAX_LAG`, `BLINK_DELAY` (<0 disables), `BLINK_PERIOD`.
 - Only `cursor_neovide.glsl` remains in `shaders/`. Removed alternatives (elastic,
   smear, smear_fade, blaze) are in dotfiles history (commit "ghostty: remove unused
   cursor shaders"); restore with `dot checkout <commit>^ -- .config/ghostty/shaders/<file>`.

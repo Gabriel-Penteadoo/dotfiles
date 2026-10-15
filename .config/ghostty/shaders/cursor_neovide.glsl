@@ -6,11 +6,12 @@
 // shader draws the whole cursor, including the inverted character under it.
 
 // Tweakables
-const float FREQUENCY = 5.0;     // spring oscillations per second (higher = snappier)
+const float FREQUENCY = 7.0;     // spring oscillations per second (higher = snappier)
 const float DAMPING = 0.38;      // 1.0 = no bounce, lower = more bounce/wobble
-const float LEAD_SPEED = 1.6;    // time multiplier for leading corners
-const float TRAIL_SPEED = 0.6;   // time multiplier for trailing corners (lower = more stretch)
-const float TILT = -1.0;         // lean: >0 top edge leads (leans forward), <0 bottom leads (top drags behind), 0 = none
+const float LEAD_SPEED = 2.0;    // time multiplier for leading corners
+const float TRAIL_SPEED = 0.5;   // time multiplier for trailing corners (lower = more stretch)
+const float TILT = -10.0;         // lean: >0 top edge leads (leans forward), <0 bottom leads (top drags behind), 0 = none
+const float MAX_LAG = 1.2;       // most a corner may trail the leader, in cells (keeps big jumps tame)
 const float MAX_DURATION = 1.0;  // hard stop in seconds
 const float BLINK_DELAY = 0.8;   // seconds after a move before blinking starts (<0 disables)
 const float BLINK_PERIOD = 1.0;  // full on/off cycle in seconds
@@ -92,6 +93,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         for (int i = 0; i < 4; i++)
             for (int j = 0; j < 4; j++)
                 if (sc[j] > sc[i]) kc[i] = min(kc[i], k[j]);
+        // Lag is a fraction of the distance, so long jumps would stretch across
+        // the screen; soft-cap how far (in pixels) any corner trails the leader.
+        // tanh is monotonic, so the corner order (and the no-bow-tie rule) holds
+        float lead = max(max(kc.x, kc.y), max(kc.z, kc.w));
+        float capPx = MAX_LAG * max(c.z, 1.0);
+        kc = lead - capPx * tanh((lead - kc) * moveLen / capPx) / moveLen;
         q0 = mix(pTL, cTL, kc.x);
         q1 = mix(pTR, cTR, kc.y);
         q2 = mix(pBR, cBR, kc.z);
