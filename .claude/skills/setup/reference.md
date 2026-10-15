@@ -78,7 +78,7 @@ Installed from COPR `scottames/ghostty` (not in Fedora repos). Version 1.3.
   cursor; `cursor-text = cell-foreground` keeps the glyph under it visible, and the shader
   re-inks it in the background color. `cursor-style-blink = false` — the shader blinks.
 - Each corner rides an underdamped spring; leading corners are faster (`LEAD_SPEED` vs
-  `TRAIL_SPEED`), `TILT` makes the top edge lead horizontally so the block leans.
+  `TRAIL_SPEED`), `TILT` sets the lean: >0 top edge leads (leans forward), <0 (current, -1.0) bottom leads so the top drags behind.
   Corners are clamped so a trailing corner never passes a leading one (prevents bow-ties).
 - Tunables at the top: `FREQUENCY`, `DAMPING`, `LEAD_SPEED`, `TRAIL_SPEED`, `TILT`,
   `BLINK_DELAY` (<0 disables), `BLINK_PERIOD`.

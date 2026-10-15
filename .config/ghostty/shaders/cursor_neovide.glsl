@@ -10,7 +10,7 @@ const float FREQUENCY = 5.0;     // spring oscillations per second (higher = sna
 const float DAMPING = 0.38;      // 1.0 = no bounce, lower = more bounce/wobble
 const float LEAD_SPEED = 1.6;    // time multiplier for leading corners
 const float TRAIL_SPEED = 0.6;   // time multiplier for trailing corners (lower = more stretch)
-const float TILT = 1;            // how much one edge leads the other (0 = no lean, 1 = strong)
+const float TILT = -1.0;         // lean: >0 top edge leads (leans forward), <0 bottom leads (top drags behind), 0 = none
 const float MAX_DURATION = 1.0;  // hard stop in seconds
 const float BLINK_DELAY = 0.8;   // seconds after a move before blinking starts (<0 disables)
 const float BLINK_PERIOD = 1.0;  // full on/off cycle in seconds
@@ -41,7 +41,7 @@ float sdQuad(vec2 p, vec2 v0, vec2 v1, vec2 v2, vec2 v3) {
 }
 
 // How much a corner leads: facing the movement, plus a bias toward one side
-// (the top edge on horizontal moves) so the block leans like Neovide's
+// (the top edge on horizontal moves when TILT > 0, the bottom edge when < 0)
 float cornerScore(vec2 cornerDir, vec2 moveDir, vec2 perp) {
     return dot(cornerDir, moveDir) + TILT * dot(cornerDir, perp);
 }
