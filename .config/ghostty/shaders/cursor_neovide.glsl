@@ -1,4 +1,4 @@
-// Neovide cursor, ported 1:1 from neovide/neovide src/renderer/cursor_renderer
+// Neovide cursor (plus an optional TILT, see below), ported from neovide/neovide src/renderer/cursor_renderer
 // (mod.rs Corner::jump / calculate_direction_alignment, animation_utils.rs
 // CriticallyDampedSpringAnimation), with Neovide's default settings.
 //
@@ -20,6 +20,11 @@ const float ANIMATION_LENGTH = 0.150;       // neovide_cursor_animation_length
 const float SHORT_ANIMATION_LENGTH = 0.04;  // neovide_cursor_short_animation_length
 const float TRAIL_SIZE = 1.0;               // neovide_cursor_trail_size (0..1)
 const float FRAME_DT = 1.0 / 60.0;          // display frame time; shorter animations snap, like Neovide
+
+// Added on top of Neovide: lean. Biases each corner's alignment toward one side
+// (top/bottom edge on horizontal moves), so one edge lands before the other.
+// <0 bottom leads (top drags behind), >0 top leads, 0 = pure Neovide
+const float TILT = -10.0;
 
 // Not part of Neovide's defaults (Neovim's default guicursor doesn't blink)
 const float BLINK_DELAY = 0.8;   // seconds after a move before blinking starts (<0 disables)
@@ -50,19 +55,26 @@ float remaining(float len, float t) {
     return (1.0 + omega * t) * exp(-omega * t);
 }
 
-// Corner::jump: per-corner animation length
+// Corner::jump: per-corner animation length. Neovide gives short jumps one
+// length for all corners; with TILT the corners keep their spread there too
+// (scaled to the short length) so typing leans as well
 float cornerLength(vec2 jumpCells, float alignment) {
-    if (abs(jumpCells.x) <= 2.001 && abs(jumpCells.y) <= 0.001)
-        return min(ANIMATION_LENGTH, SHORT_ANIMATION_LENGTH);
-    float leading = ANIMATION_LENGTH * clamp(1.0 - TRAIL_SIZE, 0.0, 1.0);
     float trailing = ANIMATION_LENGTH;
+    if (abs(jumpCells.x) <= 2.001 && abs(jumpCells.y) <= 0.001) {
+        trailing = min(ANIMATION_LENGTH, SHORT_ANIMATION_LENGTH);
+        if (TILT == 0.0) return trailing;
+    }
+    float leading = trailing * clamp(1.0 - TRAIL_SIZE, 0.0, 1.0);
     return mix(trailing, leading, alignment);
 }
 
-// calculate_direction_alignment: corner direction . travel direction
-float alignmentOf(vec2 cornerDir, vec2 travel) {
+// calculate_direction_alignment: corner direction . travel direction,
+// plus the TILT bias along perp
+float alignmentOf(vec2 cornerDir, vec2 travel, vec2 perp) {
     float len = length(travel);
-    return len > 0.0 ? dot(normalize(cornerDir), travel / len) : 0.0;
+    if (len <= 0.0) return 0.0;
+    vec2 d = normalize(cornerDir);
+    return dot(d, travel / len) + TILT * dot(d, perp);
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
@@ -90,10 +102,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     if (moving) {
         // Neovide's STANDARD_CORNERS (-0.5,-0.5) (0.5,-0.5) (0.5,0.5) (-0.5,0.5)
         // are y-down; here y is up, so TL = (-1, 1) etc. Dot products are unchanged.
-        vec4 a = vec4(alignmentOf(vec2(-1.0,  1.0), cTL - pTL),
-                      alignmentOf(vec2( 1.0,  1.0), cTR - pTR),
-                      alignmentOf(vec2( 1.0, -1.0), cBR - pBR),
-                      alignmentOf(vec2(-1.0, -1.0), cBL - pBL));
+        // Perpendicular to the move that points up for horizontal moves either way
+        vec2 moveDir = normalize(delta);
+        vec2 perp = vec2(-moveDir.y, moveDir.x) * (moveDir.x < 0.0 ? -1.0 : 1.0);
+        vec4 a = vec4(alignmentOf(vec2(-1.0,  1.0), cTL - pTL, perp),
+                      alignmentOf(vec2( 1.0,  1.0), cTR - pTR, perp),
+                      alignmentOf(vec2( 1.0, -1.0), cBR - pBR, perp),
+                      alignmentOf(vec2(-1.0, -1.0), cBL - pBL, perp));
         // Normalise to 0..1 across the four corners (all equal -> 1, like Neovide's NaN case)
         float lo = min(min(a.x, a.y), min(a.z, a.w));
         float hi = max(max(a.x, a.y), max(a.z, a.w));
