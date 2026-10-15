@@ -229,3 +229,10 @@ hl.window_rule({
     size   = { 900, 700 },
     center = true,
 })
+
+-- Omawrite: slightly see-through (blurred) like the terminal
+hl.window_rule({
+    name    = "omawrite-opacity",
+    match   = { class = "^(omawrite)$" },
+    opacity = "0.92 0.85",
+})
