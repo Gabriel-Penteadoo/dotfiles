@@ -1,8 +1,8 @@
 #!/bin/bash
 # maintain -> step-by-step upkeep for this Hyprland setup. Asks before each step.
-#   1. check    validate Hyprland and fuzzel configs
+#   1. check    validate Hyprland, fuzzel, Ghostty, Waybar, mako, Neovim and the docs viewer
 #   2. backups  find stray *.bak / *.orig / *~ files, archive and remove them
-#   3. dotfiles snapshot configs and scripts into the bare repo (~/.dotfiles)
+#   3. dotfiles commit config changes to the bare repo (~/.dotfiles), offer new files
 #   4. update   run sysupdate (dnf, flatpak, firmware, snapshots)
 #   5. clean    dnf autoremove, old caches, journal, trash
 # maintain            run all steps, asking before each
@@ -11,21 +11,13 @@ set -uo pipefail
 
 ARCHIVE="$HOME/.local/share/dotfiles-archive"
 SCAN_DIRS=(.config/hypr .config/waybar .config/fuzzel .config/mako .config/foot .local/bin)
-# Files kept in the dotfiles repo, relative to $HOME
-TRACK=(
-    .bashrc.d/dotfiles
-    .config/hypr/hyprland.lua .config/hypr/hypridle.conf .config/hypr/hyprlock.conf
-    .config/waybar/config.jsonc .config/waybar/style.css .config/waybar/scripts/cava.sh
-    .config/fuzzel/fuzzel.ini .config/mako/config .config/foot/foot.ini .config/docview
-    .config/ghostty/config .config/ghostty/shaders
-    .config/nvim/init.lua .config/nvim/lazy-lock.json .config/nvim/lazyvim.json .config/nvim/lua
-    .config/systemd/user/hyprland-session.target .config/systemd/user/wireplumber.service.d
-    .local/bin/maintain .local/bin/sysupdate .local/bin/keys .local/bin/powermenu
-    .local/bin/wallpick .local/bin/setbg .local/bin/vpn .local/bin/emoji .local/bin/docs
-    .local/share/emoji
-    .local/bin/webapp-install .local/bin/webapp-remove
-    .local/share/applications/webapp-*.desktop .local/share/applications/icons
-    .local/share/applications/vpn.desktop .local/share/applications/omawrite.desktop
+# Folders whose files belong in the dotfiles repo, relative to $HOME. Tracked files
+# are committed when they change; new files in these folders are offered for adding.
+# Files to never offer go in ~/.dotfiles/info/exclude.
+WATCH=(
+    .bashrc.d .config/hypr .config/waybar .config/fuzzel .config/mako .config/foot
+    .config/ghostty .config/nvim .config/docview .config/systemd/user
+    .local/bin .local/share/applications .local/share/emoji
     .local/share/icons/hicolor/scalable/apps/omawrite.svg
     .claude/skills/setup
 )
@@ -36,19 +28,41 @@ ok()   { printf '    %s\n' "$*"; }
 dot()  { git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" "$@"; }
 ask()  { read -rp "    $1 [Y/n] " r; [[ -z "$r" || "$r" == [yY]* ]]; }
 
+# check <name> <cmd…>: run a validator quietly, show its output only on failure
+check() {
+    local name=$1; shift
+    if out=$("$@" 2>&1); then ok "$name: OK"; else warn "$name:"; echo "$out" | sed 's/^/    /'; fi
+}
+
 step_check() {
     bold "1. Check configs"
-    if Hyprland --verify-config -c "$HOME/.config/hypr/hyprland.lua" 2>&1 | grep -q 'config ok'; then
-        ok "Hyprland: OK"
-    else
-        warn "Hyprland config has errors:"
-        Hyprland --verify-config -c "$HOME/.config/hypr/hyprland.lua" 2>&1 | grep -i error | sed 's/^/    /'
-    fi
-    if out=$(fuzzel --check-config 2>&1); then ok "fuzzel: OK"; else warn "fuzzel:"; echo "$out" | sed 's/^/    /'; fi
+    check Hyprland bash -c 'out=$(Hyprland --verify-config -c "$HOME/.config/hypr/hyprland.lua" 2>&1);
+        grep -q "config ok" <<<"$out" || { grep -iE "error|\.lua:" <<<"$out"; exit 1; }'
+    check fuzzel fuzzel --check-config
+    check Ghostty ghostty +validate-config
+    check Waybar python3 -I -c 'import json, re, sys
+p = sys.argv[1]; json.loads(re.sub(r"^\s*//.*$", "", open(p).read(), flags=re.M))' \
+        "$HOME/.config/waybar/config.jsonc"
+    pgrep -x mako >/dev/null && check mako makoctl reload
+    # Lua syntax of the nvim config and docs viewer (a headless nvim start doesn't
+    # surface LazyVim config errors, so load each file instead)
+    check "Neovim + docs viewer (Lua syntax)" nvim -l <(cat <<'LUA'
+local bad = 0
+for _, dir in ipairs(arg) do
+  for _, f in ipairs(vim.fs.find(function(n) return n:match("%.lua$") end,
+      { path = dir, type = "file", limit = math.huge })) do
+    local ok, err = loadfile(f)
+    if not ok then print(err); bad = bad + 1 end
+  end
+end
+os.exit(bad == 0 and 0 or 1)
+LUA
+) "$HOME/.config/nvim" "$HOME/.config/docview"
     if hyprctl version >/dev/null 2>&1; then
         errs=$(hyprctl configerrors 2>/dev/null | grep -v '^\s*$')
         [[ -z "$errs" ]] && ok "Running session: no errors" || { warn "Running session:"; echo "$errs" | sed 's/^/    /'; }
     fi
+    ok "(Ghostty cursor shader: not checked here; it compiles at Ghostty start, see reference.md)"
 }
 
 step_backups() {
@@ -67,7 +81,14 @@ step_backups() {
 
 step_dotfiles() {
     bold "3. Dotfiles snapshot"
-    (cd "$HOME" && for f in "${TRACK[@]}"; do [[ -e "$f" ]] && dot add -- "$f"; done)
+    mapfile -t new < <(cd "$HOME" && dot ls-files --others --exclude-standard -- "${WATCH[@]}")
+    if (( ${#new[@]} )); then
+        echo "    New files not in the repo yet:"
+        printf '      %s\n' "${new[@]}"
+        if ask "Add them? (no = skip; to never see one again, add it to ~/.dotfiles/info/exclude)"; then
+            (cd "$HOME" && dot add -- "${new[@]}")
+        fi
+    fi
     dot add -u
     if dot diff --cached --quiet; then ok "Nothing changed since last snapshot"; return; fi
     dot -c color.status=always status --short | sed 's/^/    /'
