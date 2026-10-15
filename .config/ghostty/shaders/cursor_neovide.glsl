@@ -6,11 +6,11 @@
 // shader draws the whole cursor, including the inverted character under it.
 
 // Tweakables
-const float FREQUENCY = 7.0;     // spring oscillations per second (higher = snappier)
+const float FREQUENCY = 5.0;     // spring oscillations per second (higher = snappier)
 const float DAMPING = 0.38;      // 1.0 = no bounce, lower = more bounce/wobble
 const float LEAD_SPEED = 2.0;    // time multiplier for leading corners
 const float TRAIL_SPEED = 0.5;   // time multiplier for trailing corners (lower = more stretch)
-const float TILT = -10.0;         // lean: >0 top edge leads (leans forward), <0 bottom leads (top drags behind), 0 = none
+const float TILT = -1.0;         // lean: >0 top edge leads (leans forward), <0 bottom leads (top drags behind), 0 = none
 const float MAX_LAG = 1.2;       // most a corner may trail the leader, in cells (keeps big jumps tame)
 const float MAX_DURATION = 1.0;  // hard stop in seconds
 const float BLINK_DELAY = 0.8;   // seconds after a move before blinking starts (<0 disables)
