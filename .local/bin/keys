@@ -9,10 +9,11 @@ import sys
 
 SHORTCUTS = {
     "Apps": [
-        ("Super + Return", "Terminal (alacritty)"),
+        ("Super + Return", "Terminal (ghostty)"),
         ("Super + Space", "App launcher (fuzzel)"),
         ("Super + Shift + F", "File manager (nautilus)"),
         ("Super + Shift + B", "Browser (firefox)"),
+        ("Super + C / X / V", "Copy / Cut / Paste (everywhere)"),
         ("Super + Ctrl + V", "Clipboard history"),
         ("Super + Shift + W", "Wallpaper picker"),
         ("Super + /", "This cheatsheet"),
@@ -48,7 +49,7 @@ SHORTCUTS = {
         ("Super + R", "Next preset width"),
         ("Super + Shift + R", "Previous preset width"),
         ("Super + M", "Maximize column width"),
-        ("Super + C", "Fit active column"),
+        ("Super + Shift + C", "Fit active column"),
         ("Super + - / =", "Width -10% / +10%"),
         ("Super + Shift + - / =", "Height -60px / +60px"),
     ],

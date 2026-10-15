@@ -1,0 +1,24 @@
+# Font (same as foot)
+font-family = JetBrainsMono Nerd Font
+font-size = 11
+
+theme = Catppuccin Mocha
+window-padding-x = 8
+window-padding-y = 6
+window-decoration = false
+confirm-close-surface = false
+background-opacity = 0.9
+
+# Cursor
+cursor-style = block
+cursor-style-blink = false
+shell-integration-features = no-cursor
+
+# Animated cursor trail (shaders in ./shaders, swap to try others)
+custom-shader = shaders/cursor_neovide.glsl
+custom-shader-animation = true
+
+# Hide Ghostty's own cursor; the shader draws it (with bounce) instead.
+# cursor-text keeps the character under the hidden cursor visible.
+cursor-opacity = 0
+cursor-text = cell-foreground

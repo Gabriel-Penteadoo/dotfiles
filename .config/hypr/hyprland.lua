@@ -3,7 +3,7 @@
 
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
-local terminal    = "alacritty"
+local terminal    = "ghostty"
 local fileManager = "nautilus"
 local browser     = "firefox"
 local menu        = "fuzzel"
@@ -29,6 +29,8 @@ end)
 
 hl.env("XCURSOR_SIZE", "24")
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
+-- XWayland apps render at native res (see xwayland below), so Steam scales its own UI
+hl.env("STEAM_FORCE_DESKTOPUI_SCALING", "1.5")
 
 -- ---------- Look ----------
 hl.config({
@@ -42,7 +44,11 @@ hl.config({
         },
         layout = "scrolling",
         resize_on_border = true,
+        allow_tearing = true,   -- only for windows with the `immediate` rule (games)
     },
+
+    -- Don't upscale X11 apps (Steam, Celeste) from 1280x800; render them at native 1920x1200
+    xwayland = { force_zero_scaling = true },
 
     decoration = {
         rounding = 0,
@@ -127,6 +133,12 @@ bind("CTRL + V",       hl.dsp.exec_cmd("cliphist list | fuzzel --dmenu --prompt 
 bind("SHIFT + W",      hl.dsp.exec_cmd("~/.local/bin/wallpick"))
 bind("SLASH",          hl.dsp.exec_cmd("~/.local/bin/keys"))
 
+-- Universal clipboard: works in terminals and GUI apps alike
+-- (Ctrl+Insert / Shift+Insert are copy/paste in both)
+bind("C", hl.dsp.send_shortcut({ mods = "CTRL",  key = "Insert" }))
+bind("V", hl.dsp.send_shortcut({ mods = "SHIFT", key = "Insert" }))
+bind("X", hl.dsp.send_shortcut({ mods = "CTRL",  key = "X" }))
+
 -- Screenshots
 hl.bind("PRINT",         hl.dsp.exec_cmd('grim -g "$(slurp)" - | swappy -f -'))
 hl.bind("SHIFT + PRINT", hl.dsp.exec_cmd("grim - | wl-copy"))
@@ -160,7 +172,7 @@ bind("PERIOD",       hl.dsp.layout("expel"))
 bind("R",             hl.dsp.layout("colresize +conf"))
 bind("SHIFT + R",     hl.dsp.layout("colresize -conf"))
 bind("M",             hl.dsp.layout("colresize 1.0"))
-bind("C",             hl.dsp.layout("fit active"))
+bind("SHIFT + C",     hl.dsp.layout("fit active"))
 bind("MINUS",         hl.dsp.layout("colresize -0.1"))
 bind("EQUAL",         hl.dsp.layout("colresize +0.1"))
 bind("SHIFT + MINUS", hl.dsp.window.resize({ x = 0, y = -60, relative = true }))
@@ -199,6 +211,13 @@ hl.window_rule({
     float  = true,
     size   = { 1500, 820 },
     center = true,
+})
+
+-- Celeste: present frames immediately (tearing) instead of waiting for vsync — lower input lag
+hl.window_rule({
+    name      = "celeste-tearing",
+    match     = { class = "^([Cc]eleste)$" },
+    immediate = true,
 })
 
 -- Shortcut cheatsheet (keys) as a centered floating window

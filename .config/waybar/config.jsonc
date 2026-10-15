@@ -5,7 +5,7 @@
   "modules-left": ["hyprland/workspaces"],
   "modules-center": ["clock", "custom/cava"],
   "modules-right": ["custom/1password", "custom/vpn", "bluetooth", "pulseaudio", "network", "battery"],
-  "hyprland/workspaces": { "on-click": "activate" },
+  "hyprland/workspaces": { "on-click": "activate", "persistent-workspaces": { "*": 5 } },
   "clock": { "format": "{:%a %d %b  %H:%M}", "tooltip-format": "<tt>{calendar}</tt>" },
   "custom/cava": { "exec": "~/.config/waybar/scripts/cava.sh", "format": "{}", "tooltip": false },
   "custom/vpn": {
