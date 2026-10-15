@@ -13,6 +13,7 @@ SHORTCUTS = {
         ("Super + Space", "App launcher (fuzzel)"),
         ("Super + Shift + F", "File manager (nautilus)"),
         ("Super + Shift + B", "Browser (firefox)"),
+        ("Super + Shift + O", "Markdown writer (omawrite)"),
         ("Super + C / X / V", "Copy / Cut / Paste (everywhere)"),
         ("Super + Ctrl + V", "Clipboard history"),
         ("Super + Shift + W", "Wallpaper picker"),
