@@ -24,6 +24,7 @@ Keep this file accurate: update it whenever a component, file, convention, or go
 | Old terminals | foot (`~/.config/foot/foot.ini`, still used by `keys`/`wallpick` popups), alacritty (no config, unused) |
 | Editor | Neovim 0.12 + LazyVim: `~/.config/nvim/` (custom plugins in `lua/plugins/`) |
 | Launcher | fuzzel: `~/.config/fuzzel/fuzzel.ini` |
+| Docs viewer | `~/.config/docview/viewer.lua` (used by `~/.local/bin/docs`) |
 | Notifications | mako: `~/.config/mako/config` |
 | Wallpaper | `~/.config/wallpaper` (symlink to the chosen image, set by `setbg`) |
 | Session target | `~/.config/systemd/user/hyprland-session.target` |
@@ -132,7 +133,7 @@ Rollback plugin versions: `:Lazy restore` (uses lazy-lock.json).
 | `maintain` | interactive upkeep: check / backups / dotfiles / update / clean (`TRACK=()` = files backed up) |
 | `keys` | SUPER+/ cheatsheet (Python TUI in a floating foot window). **Bind list is hardcoded.** |
 | `powermenu` | fuzzel menu: lock/suspend/logout/reboot/shutdown |
-| `docs` | fuzzel picker for machine docs (SUPER+D): this skill's reference.md / SKILL.md, `keys` cheatsheet, Omawrite README. Fixed `DOCS=("label|target")` list at the top; .md opens read-only in a floating foot popup (app-id `docview`, window rule 1100x800 centered) in `nvim --clean -R -M` with Esc/q mapped to quit, rendered by LazyVim's installed `render-markdown.nvim` (added to rtp, `anti_conceal` off; falls back to raw md if the plugin goes away). (Not bat+less: a lesskey `\\e quit` binding makes arrow keys quit too — tested.) |
+| `docs` | fuzzel picker for machine docs (SUPER+D): this skill's reference.md / SKILL.md, `keys` cheatsheet, Omawrite README. Fixed `DOCS=("label|target")` list at the top; .md opens read-only in a floating foot popup (app-id `docview`, window rule 1100x800 centered): `nvim --clean -R -M --cmd "luafile ~/.config/docview/viewer.lua"`. viewer.lua loads LazyVim's installed `render-markdown.nvim` (anti_conceal off; raw md if the plugin goes away), sets monochrome heading groups (`RenderMarkdownH1..H6` fg, `H1Bg #bababa`, `H2Bg #cecece`, `H3Bg #dedede`, H4-6 no band), and maps Esc/q to quit. (Not bat+less: a lesskey `\e quit` binding makes arrow keys quit too — tested.) |
 | `emoji` | fuzzel emoji picker (SUPER+E): copies + types via `wtype` if installed. Data: `~/.local/share/emoji/emoji.txt`, generated from unicode.org `emoji-test.txt` (fully-qualified lines → `<emoji> <name>`) |
 | `wallpick` | wallpaper picker (fzf + chafa in foot; local ~/Pictures + dharmx/walls) → `setbg` |
 | `setbg <img>` | symlink image to `~/.config/wallpaper` and restart swaybg |

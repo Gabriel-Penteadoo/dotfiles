@@ -18,17 +18,9 @@ for d in "${DOCS[@]}"; do
     target=${d#*|}
     case "$target" in
         keys) exec ~/.local/bin/keys ;;
-        # nvim, not less: less can't bind a lone Esc without breaking arrow keys.
-        # render-markdown is optional (pcall): without it the raw markdown shows
+        # Viewer setup (render-markdown, monochrome headings, Esc/q) lives in ~/.config/docview/viewer.lua
         *.md) exec setsid -f foot --app-id docview --title "$choice" \
-                  nvim --clean -R -M \
-                      --cmd "set rtp^=$HOME/.local/share/nvim/lazy/render-markdown.nvim" \
-                      --cmd "lua pcall(function() require('render-markdown').setup({ anti_conceal = { enabled = false } }) end)" \
-                      -c "setlocal ft=markdown wrap linebreak nonumber conceallevel=2 laststatus=0 noruler noshowmode | syntax on" \
-                      -c "lua pcall(vim.treesitter.start)" \
-                      -c "nnoremap <silent> <Esc> <Cmd>qa!<CR>" \
-                      -c "nnoremap <silent> q <Cmd>qa!<CR>" \
-                      "$target" ;;
+                  nvim --clean -R -M --cmd "luafile $HOME/.config/docview/viewer.lua" "$target" ;;
         *)    setsid -f xdg-open "$target" >/dev/null 2>&1 ;;
     esac
 done
