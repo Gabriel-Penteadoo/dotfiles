@@ -26,6 +26,25 @@ switches workspace.
 **Bar (top):** workspaces · clock and audio visualizer · 1Password · VPN (click to
 connect, right-click to disconnect) · Bluetooth · volume · Wi-Fi · battery.
 
+## Terminal commands
+
+From Omarchy, in `~/.bashrc.d/tools` and `~/.bashrc.d/functions`:
+
+| Command | Does |
+|---|---|
+| `cd oma` | Jump to a folder you've visited before (zoxide); real paths work as usual |
+| `ls`, `lsa`, `lt`, `lta` | Detailed list, with hidden files, as a tree, tree with hidden (eza) |
+| `tldr tar` | Short usage examples for a command |
+| `yt-dlp <url>` | Download a video |
+| `compress dir` / `decompress dir.tar.gz` | Make / extract a .tar.gz |
+| `ga branch` / `gd` | New git worktree + branch next to the repo and jump in / remove it |
+| `fip host 3000` / `lip` / `dip 3000` | Forward a remote port to localhost / list / stop |
+| `rsw src host:dest` / `lsw` / `dsw` | Keep a folder rsynced on every change / list / stop |
+| `t`, then `tdl` | tmux session, then Neovim + Claude + a terminal side by side (`tdlm`: one per subfolder, `tsl 4 cmd`: grid) |
+| `iso2sd file.iso` / `format-drive /dev/sdX name` | Write an ISO to a USB/SD card / wipe a drive to exFAT. **Both erase the drive** |
+
+`ssh` also reconnects by itself when an interactive session drops (Ctrl-C stops it).
+
 ## Keeping it healthy
 
 - **Weekly: `sysupdate`.** Updates packages, Flatpaks and firmware, takes

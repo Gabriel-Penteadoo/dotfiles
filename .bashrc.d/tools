@@ -1,0 +1,31 @@
+# Shell tools (from Omarchy's default/bash/aliases + init). Each part only
+# activates when its tool is installed: sudo dnf install zoxide eza tealdeer yt-dlp
+[[ $- == *i* ]] || return 0
+
+# zoxide: `cd` learns visited folders, so `cd oma` jumps to ~/src/omawrite.
+# Real paths still work like plain cd; `cd` alone goes home.
+if command -v zoxide &>/dev/null; then
+    eval "$(zoxide init bash)"
+    alias cd="zd"
+    zd() {
+        if (( $# == 0 )); then
+            builtin cd ~ || return
+        elif [[ -d $1 ]]; then
+            builtin cd "$1" || return
+        else
+            z "$@" || { echo "Error: Directory not found"; return 1; }
+            printf "\U000F17A9 "
+            pwd
+        fi
+    }
+fi
+
+# eza: ls with icons and git status. lsa = with hidden, lt = 2-level tree, lta = tree with hidden
+if command -v eza &>/dev/null; then
+    alias ls='eza -lh --group-directories-first --icons=auto'
+    alias lsa='ls -a'
+    alias lt='eza --tree --level=2 --long --icons --git'
+    alias lta='lt -a'
+fi
+
+# tldr (tealdeer): `tldr tar` = short examples. yt-dlp: `yt-dlp <url>`. Nothing to set up.

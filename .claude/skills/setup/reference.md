@@ -33,6 +33,7 @@ overview is `README.md` next to this file.
 | Session target | `~/.config/systemd/user/hyprland-session.target` |
 | Launchers | `~/.local/share/applications/` (web apps, vpn, omawrite) |
 | Scripts | `~/.local/bin/` |
+| Shell | bash; `~/.bashrc` sources `~/.bashrc.d/*` (`dotfiles`, `tools`, `functions`) |
 | Dotfiles | bare repo `~/.dotfiles`, alias in `~/.bashrc.d/dotfiles` |
 | Docs | `~/.claude/skills/setup/` (README.md, reference.md, SKILL.md) |
 
@@ -150,6 +151,24 @@ if the plugin is gone), sets monochrome heading colours (H1–H3 bands `#bababa`
 
 Gotcha: it's nvim and not bat+less because less can't bind a lone Esc (`\e quit` in lesskey
 makes the arrow keys quit too).
+
+## Shell (`~/.bashrc.d`)
+
+Plain bash; Fedora's `~/.bashrc` sources every file in `~/.bashrc.d` (interactive parts
+return early for non-interactive shells).
+- `dotfiles`: the `dot` alias.
+- `tools`: from Omarchy's `default/bash/aliases` + `init`: zoxide (`cd` → `zd`, falls back to
+  `builtin cd` for real paths), eza aliases (`ls`/`lsa`/`lt`/`lta`). Each block only activates
+  when its tool is installed (`zoxide eza tealdeer yt-dlp` from dnf).
+- `functions`: Omarchy's `default/bash/fns/*` (upstream: basecamp/omarchy, branch `quattro`):
+  compression, worktrees, ssh-port-forwarding, rsyncing, drives, tmux (`tdl`/`tdlm`/`tsl`, not
+  `tds`), ssh-reconnect. Local changes are marked `local:`: no `mise trust` in `ga`; `iso2sd`
+  picks the drive with `gum choose`; `tdl` defaults to `claude`, opens `nvim` explicitly
+  (`$EDITOR` is nano) and focuses the editor (upstream selects an unset `$opencode_pane`).
+- Not taken: fzf `ff`/Ctrl+R bindings, `try`, Herdr, `tds` (needs hunk/opencode), Omarchy's
+  other aliases.
+- Gotcha: git has no global `user.name`/`user.email` (only the dotfiles repo sets one), so
+  commits in other repos fail until it's configured.
 
 ## Dotfiles repo
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # maintain -> step-by-step upkeep for this Hyprland setup. Asks before each step.
-#   1. check    validate Hyprland, fuzzel, Ghostty, Waybar, mako, Neovim and the docs viewer
+#   1. check    validate Hyprland, fuzzel, shell, Ghostty, Waybar, mako, Neovim and the docs viewer
 #   2. backups  find stray *.bak / *.orig / *~ files, archive and remove them
 #   3. dotfiles commit config changes to the bare repo (~/.dotfiles), offer new files
 #   4. update   run sysupdate (dnf, flatpak, firmware, snapshots)
@@ -39,6 +39,7 @@ step_check() {
     check Hyprland bash -c 'out=$(Hyprland --verify-config -c "$HOME/.config/hypr/hyprland.lua" 2>&1);
         grep -q "config ok" <<<"$out" || { grep -iE "error|\.lua:" <<<"$out"; exit 1; }'
     check fuzzel fuzzel --check-config
+    check "Shell config (~/.bashrc.d)" bash -c 'for f in "$HOME"/.bashrc.d/*; do bash -n "$f" || exit 1; done'
     check Ghostty ghostty +validate-config
     check Waybar python3 -I -c 'import json, re, sys
 p = sys.argv[1]; json.loads(re.sub(r"^\s*//.*$", "", open(p).read(), flags=re.M))' \
