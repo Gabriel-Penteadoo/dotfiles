@@ -18,19 +18,21 @@ the relevant section before editing a component.
 1. **Look first.** Read the file you're changing (and the component's section in
    reference.md). Check `dot status --short` so you know what's already uncommitted.
 2. **Back up only via git, not `.bak` files.** The dotfiles repo is the backup. If a
-   file is untracked, it gets added in step 6. Don't leave `*.bak*`/`*.orig` copies
+   file is untracked, add it in step 6. Don't leave `*.bak*`/`*.orig` copies
    around; `maintain backups` exists to clean those up.
 3. **Edit in the existing style.** Match comments/naming of the file. Hyprland's config
    is **Lua** (`hl.config{}`, `hl.bind`, `hl.window_rule`…), not hyprlang `.conf` syntax.
-4. **Validate** with the component's checker (table below). Never finish with an
-   unvalidated config.
+4. **Validate**: `maintain check` validates everything at once (Hyprland, fuzzel, Ghostty,
+   Waybar, mako, Lua syntax of nvim + docs viewer, live session errors). Extra per-component
+   checks are in the table below. Never finish with an unvalidated config.
 5. **Apply/reload** so the user sees it now (table below). Prefer reloads over restarts.
 6. **Record it:**
    - Commit to dotfiles: `git --git-dir=$HOME/.dotfiles --work-tree=$HOME add <files> && … commit -m "<component>: <what>"`
      (the alias `dot` only exists in interactive shells). Only commit files you changed;
      leave the user's other uncommitted edits alone unless asked. Don't push (no remote).
-   - New config file/dir that should be backed up → add it to `TRACK=(…)` in
-     `~/.local/bin/maintain`.
+   - New config file → `dot add` it. It must sit under a folder in `WATCH=(…)` in
+     `~/.local/bin/maintain` (add the folder if not), so future snapshots keep it.
+     Files to never back up go in `~/.dotfiles/info/exclude`.
    - Added/changed a keybind → give it a `desc` ("Section|What it does") in `hyprland.lua`;
      the SUPER+/ cheatsheet picks it up automatically.
    - Changed how a component works (new tool, new file, new convention, new gotcha) →
@@ -47,11 +49,11 @@ the relevant section before editing a component.
 | hypridle / hyprlock | — | `pkill hypridle; hypridle & disown` / next lock |
 | Waybar `~/.config/waybar/` | JSONC must parse; watch `waybar` stderr | `pkill -SIGUSR2 waybar` |
 | Ghostty `~/.config/ghostty/config` | `ghostty +validate-config` | in-app `Ctrl+Shift+,` (some keys e.g. opacity need a new window) |
-| Ghostty shaders | `timeout 3 ghostty -e true 2>&1 \| grep -iE 'shadertoy\|spirv\|ERROR:'` → must say `loaded custom shader` | same reload |
-| Neovim `~/.config/nvim/` | `nvim --headless "+Lazy! install" +qa` | reopen nvim |
+| Ghostty shaders (not in `maintain check`: opens a window) | `timeout 3 ghostty -e true 2>&1 \| grep -iE 'shadertoy\|spirv\|ERROR:'` → must say `loaded custom shader` | same reload |
+| Neovim `~/.config/nvim/` | `maintain check` (Lua syntax); new plugins: `nvim --headless "+Lazy! install" +qa`. A plain headless start does **not** show LazyVim config errors | reopen nvim |
 | fuzzel | `fuzzel --check-config` | next launch |
 | mako | `makoctl reload` (errors shown) | same |
-| Whole setup | `maintain check` | — |
+| Whole setup | `maintain check` (also after every change) | — |
 
 ## Constraints
 
@@ -74,7 +76,7 @@ the relevant section before editing a component.
   diff + config check against the new binary, reboot hint. Undo a dnf transaction:
   `sudo snapper undochange <pre>..<post>`.
 - `maintain` — interactive: `check`, `backups` (archive stray .bak files to
-  `~/.local/share/dotfiles-archive`), `dotfiles` (snapshot TRACK list into ~/.dotfiles),
+  `~/.local/share/dotfiles-archive`), `dotfiles` (commit changes, offer new files in WATCH folders),
   `update` (runs sysupdate), `clean` (autoremove, caches, journal, trash).
   Run single steps: `maintain check dotfiles`.
 - After a Hyprland update, the Lua API can change: run `maintain check`, read the

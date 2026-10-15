@@ -41,7 +41,7 @@ overview is `README.md` next to this file.
 `hyprland.lua` sections, in order:
 1. `hl.monitor`, app variables (`terminal`, `fileManager`, `browser`, `menu`, `mod`).
 2. **Autostart** in `hl.on("hyprland.start", …)`: systemd env export + `hyprland-session.target`,
-   waybar, mako, polkit agent, nm-applet, blueman-applet, cliphist watcher, swaybg,
+   waybar, mako, polkit agent, nm-applet, blueman-applet, cliphist watcher, `setbg` (swaybg),
    hypridle, wlsunset (Paris coords), 1Password. VPN autoconnect is commented out.
 3. `hl.env`: cursor size, qt6ct, Steam scaling.
 4. `hl.config{}`: `general` (layout = `scrolling`, gaps 4/8, border 2), `xwayland.force_zero_scaling`,
@@ -124,13 +124,13 @@ Roll back plugin versions: `:Lazy restore`.
 | Script | Purpose |
 |---|---|
 | `sysupdate` | dnf + flatpak + fwupd, snapper snapshots, Hyprland version diff + config check, reboot hint |
-| `maintain` | upkeep: `check` / `backups` / `dotfiles` / `update` / `clean` |
+| `maintain` | upkeep: `check` (validates every component) / `backups` / `dotfiles` / `update` / `clean` |
 | `keys` | SUPER+/ cheatsheet (curses TUI in foot), built from bind descriptions + `EXTRA` |
 | `docs` | SUPER+D machine-docs picker, see [Docs viewer](#docs-viewer) |
 | `emoji` | SUPER+E picker: copies, and types if `wtype` is installed |
 | `powermenu` | lock / suspend / logout / reboot / shutdown |
 | `wallpick` | wallpaper picker (fzf + chafa in foot; ~/Pictures + dharmx/walls) → `setbg` |
-| `setbg <img>` | point `~/.config/wallpaper` at an image and restart swaybg |
+| `setbg [img]` | point `~/.config/wallpaper` at an image (none = keep current) and (re)start swaybg; autostart runs it |
 | `vpn [off\|status]` | openfortivpn (Okta SAML) for the Paris office |
 | `webapp-install` / `-remove` | Chromium app-window launchers (gum prompts) |
 
@@ -140,8 +140,8 @@ Roll back plugin versions: `:Lazy restore`.
 
 ## Docs viewer
 
-`docs` lists fixed entries (`DOCS=("label|target")`): README, this reference, SKILL.md,
-the cheatsheet, the Omawrite README. `.md` opens in a floating foot popup (app-id `docview`,
+`docs` lists fixed entries (`DOCS=("label|target")`): README, this reference, the cheatsheet,
+the Omawrite README (SKILL.md is left out: it's instructions for Claude). `.md` opens in a floating foot popup (app-id `docview`,
 1100x800): `nvim --clean -R -M --cmd "luafile ~/.config/docview/viewer.lua"`.
 
 `viewer.lua` loads LazyVim's installed `render-markdown.nvim` (anti_conceal off; raw markdown
@@ -154,8 +154,10 @@ makes the arrow keys quit too).
 ## Dotfiles repo
 
 - `git --git-dir=$HOME/.dotfiles --work-tree=$HOME …` (alias `dot`, interactive shells only), no remote.
-- `status.showUntrackedFiles = no`: new files never show in `status`. Add them explicitly,
-  or via `maintain dotfiles` after adding them to `TRACK` in `maintain`.
+- `status.showUntrackedFiles = no`: new files never show in `status`. `maintain dotfiles`
+  lists untracked files under the `WATCH=(…)` folders in `maintain` and offers to add them.
+  Deliberately untracked files (nvim starter boilerplate, `claude`/`omawrite` binaries, game
+  launchers, mime caches) are listed in `~/.dotfiles/info/exclude` (not itself tracked).
 - Commit style: `<component>: <change>`, or `Maintenance snapshot YYYY-MM-DD` from maintain.
 
 ## System
