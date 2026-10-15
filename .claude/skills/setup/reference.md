@@ -132,7 +132,7 @@ Rollback plugin versions: `:Lazy restore` (uses lazy-lock.json).
 | `maintain` | interactive upkeep: check / backups / dotfiles / update / clean (`TRACK=()` = files backed up) |
 | `keys` | SUPER+/ cheatsheet (Python TUI in a floating foot window). **Bind list is hardcoded.** |
 | `powermenu` | fuzzel menu: lock/suspend/logout/reboot/shutdown |
-| `docs` | fuzzel document picker (SUPER+D): `DIRS`/`EXTS` arrays at the top; newest first; opens via `xdg-open` (md/txt → Omawrite, pdf → Chromium, office → LibreOffice) |
+| `docs` | fuzzel picker for machine docs (SUPER+D): this skill's reference.md / SKILL.md, `keys` cheatsheet, Omawrite README. Fixed `DOCS=("label|target")` list at the top; .md opens via `xdg-open` (Omawrite) |
 | `emoji` | fuzzel emoji picker (SUPER+E): copies + types via `wtype` if installed. Data: `~/.local/share/emoji/emoji.txt`, generated from unicode.org `emoji-test.txt` (fully-qualified lines → `<emoji> <name>`) |
 | `wallpick` | wallpaper picker (fzf + chafa in foot; local ~/Pictures + dharmx/walls) → `setbg` |
 | `setbg <img>` | symlink image to `~/.config/wallpaper` and restart swaybg |

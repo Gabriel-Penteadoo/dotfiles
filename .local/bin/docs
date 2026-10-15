@@ -1,18 +1,19 @@
 #!/bin/bash
-# Document picker via fuzzel: lists documents (md, txt, pdf, office files…) under
-# the folders below, newest first, and opens the chosen one with its default app
-# (xdg-open: md/txt → Omawrite, pdf → browser, office → LibreOffice).
-# Add folders to DIRS or extensions to EXTS to widen it.
-DIRS=(~/Documents ~/Downloads ~/Desktop ~/Work ~/Projects)
-EXTS=(md markdown txt pdf doc docx odt rtf xls xlsx ods csv ppt pptx odp epub)
+# Machine docs picker via fuzzel (SUPER+D): this setup's own documentation.
+# Entries are "label|target"; .md files open with the default app (Omawrite),
+# "keys" opens the SUPER+/ cheatsheet. Add a line to DOCS to list another doc.
+DOCS=(
+    "Setup reference — components, files, gotchas|$HOME/.claude/skills/setup/reference.md"
+    "Setup workflow — making changes, validating, maintenance|$HOME/.claude/skills/setup/SKILL.md"
+    "Keybinds cheatsheet|keys"
+    "Omawrite README (built from source)|$HOME/src/omawrite/README.md"
+)
 
-name_args=()
-for e in "${EXTS[@]}"; do name_args+=(-o -iname "*.$e"); done
-
-choice=$(find "${DIRS[@]}" -maxdepth 4 \
-        \( -name node_modules -o -name .git \) -prune -o \
-        -type f \( "${name_args[@]:1}" \) -printf '%T@\t%p\n' 2>/dev/null \
-    | sort -rn | cut -f2- | sed "s|^$HOME|~|" \
-    | fuzzel --dmenu --prompt "docs  ›  " --width 70) || exit
-[ -n "$choice" ] || exit
-setsid -f xdg-open "${choice/#\~/$HOME}" >/dev/null 2>&1
+choice=$(printf '%s\n' "${DOCS[@]%%|*}" \
+    | fuzzel --dmenu --prompt "docs  ›  " --width 50 --lines ${#DOCS[@]}) || exit
+for d in "${DOCS[@]}"; do
+    [ "${d%%|*}" = "$choice" ] || continue
+    target=${d#*|}
+    if [ "$target" = keys ]; then exec ~/.local/bin/keys; fi
+    setsid -f xdg-open "$target" >/dev/null 2>&1
+done
