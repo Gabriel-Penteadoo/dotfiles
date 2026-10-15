@@ -189,6 +189,22 @@ return early for non-interactive shells).
   launchers, mime caches) are listed in `~/.dotfiles/info/exclude` (not itself tracked).
 - Commit style: `<component>: <change>`, or `Maintenance snapshot YYYY-MM-DD` from maintain.
 
+## Work vs personal
+
+Work = a GitHub Enterprise host (name in `~/Work/.envrc` and `~/.ssh/config`, kept
+out of this public repo), personal = `github.com`, so auth never clashes.
+Split is **by folder**: work repos live in `~/Work/`, personal ones anywhere else.
+- Git identity: `~/.gitconfig` (tracked) = personal name/email + `includeIf "gitdir:~/Work/"`
+  → `~/.config/git/work.gitconfig` (work email, **not tracked**). Check: `git config user.email`.
+- gh: logged in on both hosts (`gh auth login --hostname <work host>`); inside a repo
+  gh follows the remote, outside one `GH_HOST` decides.
+- SSH: `~/.ssh/id_ed25519` is the work key, pinned to the work host in `~/.ssh/config`
+  (not tracked); that host only answers on the work VPN. Personal pushes use HTTPS via gh.
+- direnv (hook in `~/.bashrc.d/tools`): `~/Work/.envrc` sets `GH_HOST` and other work-only env;
+  `direnv allow` after editing it.
+- Never commit work files to the public dotfiles: `work.gitconfig`, `~/.ssh/`, `~/Work/` are in
+  `info/exclude`.
+
 ## System
 
 - Fedora 44, btrfs + snapper (root config), dnf5, flatpak, fwupd.

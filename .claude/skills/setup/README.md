@@ -68,6 +68,9 @@ turns red when the last command failed.
 | Neovim plugins misbehave after an update | `:Lazy restore` in Neovim (back to the locked versions) |
 | Something else | Ask Claude: it knows this setup (`~/.claude/skills/setup`) |
 
+**Work vs personal:** put work repos in `~/Work`. There git commits with your work email
+and `gh` talks to the work GitHub; everywhere else it's your personal account.
+
 `dot` is git for the dotfiles repo (`~/.dotfiles`, files live in place in `~`).
 Every config change is committed there, so any earlier version can come back, and pushed to
 GitHub (public), so a new machine can get it back. Work-only files (work web apps, `vpn`) stay

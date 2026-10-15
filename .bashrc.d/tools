@@ -1,5 +1,5 @@
 # Shell tools (from Omarchy's default/bash/aliases + init). Each part only
-# activates when its tool is installed: sudo dnf install zoxide eza tealdeer yt-dlp
+# activates when its tool is installed: sudo dnf install zoxide eza tealdeer yt-dlp direnv
 [[ $- == *i* ]] || return 0
 
 # zoxide: `cd` learns visited folders, so `cd oma` jumps to ~/src/omawrite.
@@ -29,3 +29,9 @@ if command -v eza &>/dev/null; then
 fi
 
 # tldr (tealdeer): `tldr tar` = short examples. yt-dlp: `yt-dlp <url>`. Nothing to set up.
+
+# direnv: a folder's .envrc is loaded on entering it, unloaded on leaving. ~/Work/.envrc
+# sets work-only env (GH_HOST for the work GitHub…); after editing one, `direnv allow`.
+if command -v direnv &>/dev/null; then
+    eval "$(direnv hook bash)"
+fi

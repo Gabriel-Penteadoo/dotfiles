@@ -1,0 +1,11 @@
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[user]
+	name = Gabriel Penteado
+	email = gabrielmeira13v2.0@gmail.com
+[includeIf "gitdir:~/Work/"]
+	path = ~/.config/git/work.gitconfig

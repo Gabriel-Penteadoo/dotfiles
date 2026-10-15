@@ -19,7 +19,7 @@ WATCH=(
     .config/ghostty .config/nvim .config/docview .config/systemd/user
     .local/bin .local/share/applications .local/share/emoji
     .local/share/icons/hicolor/scalable/apps/omawrite.svg
-    .claude/skills/setup
+    .claude/skills/setup .gitconfig
 )
 
 bold() { printf '\n\e[1;34m==> %s\e[0m\n' "$*"; }
