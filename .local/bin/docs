@@ -1,7 +1,7 @@
 #!/bin/bash
 # Machine docs picker via fuzzel (SUPER+D): this setup's own documentation.
 # Entries are "label|target"; .md files open read-only in a floating foot popup
-# (bat, scroll with arrows/PgUp/PgDn, / to search, q to close), "keys" opens the
+# (minimal nvim: arrows/PgUp/PgDn scroll, / searches, Esc or q closes), "keys" opens the
 # SUPER+/ cheatsheet, anything else uses the default app. Add a line to DOCS to list another doc.
 DOCS=(
     "Setup reference — components, files, gotchas|$HOME/.claude/skills/setup/reference.md"
@@ -17,9 +17,13 @@ for d in "${DOCS[@]}"; do
     target=${d#*|}
     case "$target" in
         keys) exec ~/.local/bin/keys ;;
+        # nvim, not less: less can't bind a lone Esc without breaking arrow keys
         *.md) exec setsid -f foot --app-id docview --title "$choice" \
-                  bat --paging=always --pager "less -R" --style=plain --theme=ansi \
-                      --wrap=auto --language=md "$target" ;;
+                  nvim --clean -R -M \
+                      -c "setlocal ft=markdown wrap linebreak nonumber conceallevel=2 laststatus=0 noruler noshowmode | syntax on" \
+                      -c "nnoremap <silent> <Esc> <Cmd>qa!<CR>" \
+                      -c "nnoremap <silent> q <Cmd>qa!<CR>" \
+                      "$target" ;;
         *)    setsid -f xdg-open "$target" >/dev/null 2>&1 ;;
     esac
 done
