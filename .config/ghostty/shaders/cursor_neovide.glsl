@@ -1,29 +1,29 @@
-// Neovide-style cursor: each corner rides its own spring. Corners facing the
-// direction of travel move faster than the ones behind, so the block stretches
-// and tilts as it flies, overshoots the target and wobbles into place.
+// Neovide cursor, ported 1:1 from neovide/neovide src/renderer/cursor_renderer
+// (mod.rs Corner::jump / calculate_direction_alignment, animation_utils.rs
+// CriticallyDampedSpringAnimation), with Neovide's default settings.
+//
+// Each corner gets its own animation length from how well it faces the
+// direction of travel: front corners land instantly, back corners trail for
+// ANIMATION_LENGTH. Moves of <= 2 cells on the same line (typing) use the short
+// length for every corner. Springs are critically damped: no overshoot.
 //
 // Ghostty's own cursor is hidden (cursor-opacity = 0 in the config) and this
 // shader draws the whole cursor, including the inverted character under it.
+//
+// Differences from Neovide that a shader can't avoid: Ghostty only gives the
+// previous and current cursor rect, so a move that interrupts a running
+// animation restarts from the previous cell instead of the corner's current
+// position and velocity.
 
-// Tweakables
-const float FREQUENCY = 5.0;     // spring oscillations per second (higher = snappier)
-const float DAMPING = 0.6;       // ~0.9 = no bounce (keep < 1.0), lower = more bounce/wobble (was 0.38)
-const float LEAD_SPEED = 2.0;    // time multiplier for leading corners
-const float TRAIL_SPEED = 0.5;   // time multiplier for trailing corners (lower = more stretch)
-const float TILT = -10.0;         // lean: >0 top edge leads (leans forward), <0 bottom leads (top drags behind), 0 = none
-const float MAX_LAG = 1.2;       // most a corner may trail the leader, in cells (keeps big jumps tame)
-const float MAX_DURATION = 1.0;  // hard stop in seconds
+// Neovide settings (vim.g.neovide_cursor_*), defaults
+const float ANIMATION_LENGTH = 0.150;       // neovide_cursor_animation_length
+const float SHORT_ANIMATION_LENGTH = 0.04;  // neovide_cursor_short_animation_length
+const float TRAIL_SIZE = 1.0;               // neovide_cursor_trail_size (0..1)
+const float FRAME_DT = 1.0 / 60.0;          // display frame time; shorter animations snap, like Neovide
+
+// Not part of Neovide's defaults (Neovim's default guicursor doesn't blink)
 const float BLINK_DELAY = 0.8;   // seconds after a move before blinking starts (<0 disables)
 const float BLINK_PERIOD = 1.0;  // full on/off cycle in seconds
-
-// Underdamped spring step response: 0 -> 1 with overshoot
-float spring(float t) {
-    float w = 6.2831853 * FREQUENCY;
-    float z = DAMPING;
-    float wd = w * sqrt(1.0 - z * z);
-    float env = exp(-z * w * t);
-    return 1.0 - env * (cos(wd * t) + (z * w / wd) * sin(wd * t));
-}
 
 // Signed distance to a quad (any shape, negative inside) - after iq's sdPolygon
 float sdQuad(vec2 p, vec2 v0, vec2 v1, vec2 v2, vec2 v3) {
@@ -41,16 +41,28 @@ float sdQuad(vec2 p, vec2 v0, vec2 v1, vec2 v2, vec2 v3) {
     return s * sqrt(d);
 }
 
-// How much a corner leads: facing the movement, plus a bias toward one side
-// (the top edge on horizontal moves when TILT > 0, the bottom edge when < 0)
-float cornerScore(vec2 cornerDir, vec2 moveDir, vec2 perp) {
-    return dot(cornerDir, moveDir) + TILT * dot(cornerDir, perp);
+// Critically damped spring (zeta = 1, omega = 4 / length), released from rest
+// with offset 1: remaining offset after t seconds. Neovide resets an animation
+// whose length is <= one frame, i.e. it jumps straight to the destination.
+float remaining(float len, float t) {
+    if (len <= FRAME_DT) return 0.0;
+    float omega = 4.0 / len;
+    return (1.0 + omega * t) * exp(-omega * t);
 }
 
-// score in [-1, 1]: +1 leads the way, -1 trails furthest behind
-float cornerProgress(float score, float t) {
-    float speed = mix(TRAIL_SPEED, LEAD_SPEED, score * 0.5 + 0.5);
-    return spring(t * speed);
+// Corner::jump: per-corner animation length
+float cornerLength(vec2 jumpCells, float alignment) {
+    if (abs(jumpCells.x) <= 2.001 && abs(jumpCells.y) <= 0.001)
+        return min(ANIMATION_LENGTH, SHORT_ANIMATION_LENGTH);
+    float leading = ANIMATION_LENGTH * clamp(1.0 - TRAIL_SIZE, 0.0, 1.0);
+    float trailing = ANIMATION_LENGTH;
+    return mix(trailing, leading, alignment);
+}
+
+// calculate_direction_alignment: corner direction . travel direction
+float alignmentOf(vec2 cornerDir, vec2 travel) {
+    float len = length(travel);
+    return len > 0.0 ? dot(normalize(cornerDir), travel / len) : 0.0;
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
@@ -70,39 +82,32 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     float t = iTime - iTimeCursorChange;
     vec2 delta = (c.xy + vec2(c.z, -c.w) * 0.5) - (p.xy + vec2(p.z, -p.w) * 0.5);
-    float moveLen = length(delta);
 
     vec2 q0 = cTL, q1 = cTR, q2 = cBR, q3 = cBL;
+    // Animations last at most ANIMATION_LENGTH-ish; by 3x the offset is < 0.01%.
     // Ghostty only redraws continuously while focused, so never animate unfocused
-    bool moving = iFocus == 1 && t < MAX_DURATION && moveLen > 0.5;
+    bool moving = iFocus == 1 && t < ANIMATION_LENGTH * 3.0 && length(delta) > 0.5;
     if (moving) {
-        vec2 moveDir = delta / moveLen;
-        // Perpendicular that points up for horizontal moves either way
-        vec2 perp = vec2(-moveDir.y, moveDir.x) * (moveDir.x < 0.0 ? -1.0 : 1.0);
-        float s0 = cornerScore(vec2(-1.0,  1.0), moveDir, perp);
-        float s1 = cornerScore(vec2( 1.0,  1.0), moveDir, perp);
-        float s2 = cornerScore(vec2( 1.0, -1.0), moveDir, perp);
-        float s3 = cornerScore(vec2(-1.0, -1.0), moveDir, perp);
-        float norm = max(max(abs(s0), abs(s1)), max(abs(s2), abs(s3)));
-        vec4 sc = vec4(s0, s1, s2, s3) / norm;
-        vec4 k = vec4(cornerProgress(sc.x, t), cornerProgress(sc.y, t),
-                      cornerProgress(sc.z, t), cornerProgress(sc.w, t));
-        // A corner never gets ahead of one that leads it, otherwise the
-        // bounce flips the lean and the quad crosses itself into a bow-tie
-        vec4 kc = k;
-        for (int i = 0; i < 4; i++)
-            for (int j = 0; j < 4; j++)
-                if (sc[j] > sc[i]) kc[i] = min(kc[i], k[j]);
-        // Lag is a fraction of the distance, so long jumps would stretch across
-        // the screen; soft-cap how far (in pixels) any corner trails the leader.
-        // tanh is monotonic, so the corner order (and the no-bow-tie rule) holds
-        float lead = max(max(kc.x, kc.y), max(kc.z, kc.w));
-        float capPx = MAX_LAG * max(c.z, 1.0);
-        kc = lead - capPx * tanh((lead - kc) * moveLen / capPx) / moveLen;
-        q0 = mix(pTL, cTL, kc.x);
-        q1 = mix(pTR, cTR, kc.y);
-        q2 = mix(pBR, cBR, kc.z);
-        q3 = mix(pBL, cBL, kc.w);
+        // Neovide's STANDARD_CORNERS (-0.5,-0.5) (0.5,-0.5) (0.5,0.5) (-0.5,0.5)
+        // are y-down; here y is up, so TL = (-1, 1) etc. Dot products are unchanged.
+        vec4 a = vec4(alignmentOf(vec2(-1.0,  1.0), cTL - pTL),
+                      alignmentOf(vec2( 1.0,  1.0), cTR - pTR),
+                      alignmentOf(vec2( 1.0, -1.0), cBR - pBR),
+                      alignmentOf(vec2(-1.0, -1.0), cBL - pBL));
+        // Normalise to 0..1 across the four corners (all equal -> 1, like Neovide's NaN case)
+        float lo = min(min(a.x, a.y), min(a.z, a.w));
+        float hi = max(max(a.x, a.y), max(a.z, a.w));
+        a = hi - lo > 1e-6 ? clamp((a - lo) / (hi - lo), 0.0, 1.0) : vec4(1.0);
+
+        vec2 cell = vec2(c.z, c.w);
+        vec4 r = vec4(remaining(cornerLength((cTL - pTL) / cell, a.x), t),
+                      remaining(cornerLength((cTR - pTR) / cell, a.y), t),
+                      remaining(cornerLength((cBR - pBR) / cell, a.z), t),
+                      remaining(cornerLength((cBL - pBL) / cell, a.w), t));
+        q0 = mix(cTL, pTL, r.x);
+        q1 = mix(cTR, pTR, r.y);
+        q2 = mix(cBR, pBR, r.z);
+        q3 = mix(cBL, pBL, r.w);
     }
 
     // Blink only while resting and focused

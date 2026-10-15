@@ -77,11 +77,20 @@ Installed from COPR `scottames/ghostty` (not in Fedora repos). Version 1.3.
 - Ghostty's own cursor is hidden (`cursor-opacity = 0`) and the shader draws the whole
   cursor; `cursor-text = cell-foreground` keeps the glyph under it visible, and the shader
   re-inks it in the background color. `cursor-style-blink = false` — the shader blinks.
-- Each corner rides an underdamped spring; leading corners are faster (`LEAD_SPEED` vs
-  `TRAIL_SPEED`), `TILT` sets the lean: >0 top edge leads (leans forward), <0 bottom leads so the top drags behind (current -1.0). Lag is distance-proportional, so `MAX_LAG` (cells) soft-caps it with tanh: small typing moves lean visibly, big jumps stay tame.
-  Corners are clamped so a trailing corner never passes a leading one (prevents bow-ties).
-- Tunables at the top: `FREQUENCY`, `DAMPING`, `LEAD_SPEED`, `TRAIL_SPEED`, `TILT`,
-  `MAX_LAG`, `BLINK_DELAY` (<0 disables), `BLINK_PERIOD`.
+- **1:1 port of Neovide's cursor** (neovide/neovide `src/renderer/cursor_renderer/mod.rs`
+  `Corner::jump` + `calculate_direction_alignment`, `animation_utils.rs`
+  `CriticallyDampedSpringAnimation`). Per-corner alignment with travel direction, min-max
+  normalised to 0..1; length = `mix(ANIMATION_LENGTH, ANIMATION_LENGTH*(1-TRAIL_SIZE), a)`;
+  jumps of <= 2 cells on one line use `SHORT_ANIMATION_LENGTH` for all corners; critically
+  damped spring (omega = 4/length, no overshoot); lengths <= `FRAME_DT` snap (60 Hz panel).
+  Horizontal/vertical moves stretch without leaning; only diagonal moves lean (Neovide behaviour).
+- Tunables (same names/defaults as `vim.g.neovide_cursor_*`): `ANIMATION_LENGTH` 0.150,
+  `SHORT_ANIMATION_LENGTH` 0.04, `TRAIL_SIZE` 1.0, plus `FRAME_DT`, `BLINK_DELAY` (<0 disables;
+  Neovide itself doesn't blink by default), `BLINK_PERIOD`.
+- Known difference: a shader only sees previous/current cursor rects, so a move interrupting
+  an animation restarts from the previous cell (Neovide continues from the live position).
+- The earlier hand-tuned underdamped-spring version (TILT, MAX_LAG, DAMPING…) is in dotfiles
+  commit 25a616b: `dot checkout 25a616b -- .config/ghostty/shaders/cursor_neovide.glsl`.
 - Only `cursor_neovide.glsl` remains in `shaders/`. Removed alternatives (elastic,
   smear, smear_fade, blaze) are in dotfiles history (commit "ghostty: remove unused
   cursor shaders"); restore with `dot checkout <commit>^ -- .config/ghostty/shaders/<file>`.
