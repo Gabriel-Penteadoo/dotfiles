@@ -1,0 +1,10 @@
+#!/bin/bash
+# Emoji picker via fuzzel: search by name, copies the emoji and types it into the
+# focused window (typing needs wtype; without it the emoji is only copied).
+# List: ~/.local/share/emoji/emoji.txt ("<emoji> <name>" per line, from Unicode emoji-test.txt).
+list=~/.local/share/emoji/emoji.txt
+choice=$(fuzzel --dmenu --prompt "emoji  ›  " --width 40 < "$list") || exit
+emoji=${choice%% *}
+[ -n "$emoji" ] || exit
+printf '%s' "$emoji" | wl-copy
+command -v wtype >/dev/null && wtype "$emoji"

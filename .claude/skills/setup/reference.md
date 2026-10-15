@@ -51,7 +51,7 @@ Keep this file accurate: update it whenever a component, file, convention, or go
 
 Key binds (mirror in `~/.local/bin/keys` when changing!): SUPER+Return terminal, Space
 fuzzel, W close, F fullscreen, T float, L lock, Esc powermenu, Shift+Esc exit, Ctrl+V
-clipboard history, Shift+W wallpick, / cheatsheet, C/V/X universal copy/paste/cut,
+clipboard history, E emoji picker, Shift+W wallpick, / cheatsheet, C/V/X universal copy/paste/cut,
 arrows focus, Shift+arrows move, R/Shift+R/M/-/= column width, [ ] , . consume/expel,
 1-9 workspaces (+Shift move), Tab/Shift+Tab next/prev, Print = region screenshot → swappy.
 
@@ -120,6 +120,7 @@ Rollback plugin versions: `:Lazy restore` (uses lazy-lock.json).
 | `maintain` | interactive upkeep: check / backups / dotfiles / update / clean (`TRACK=()` = files backed up) |
 | `keys` | SUPER+/ cheatsheet (Python TUI in a floating foot window). **Bind list is hardcoded.** |
 | `powermenu` | fuzzel menu: lock/suspend/logout/reboot/shutdown |
+| `emoji` | fuzzel emoji picker (SUPER+E): copies + types via `wtype` if installed. Data: `~/.local/share/emoji/emoji.txt`, generated from unicode.org `emoji-test.txt` (fully-qualified lines → `<emoji> <name>`) |
 | `wallpick` | wallpaper picker (fzf + chafa in foot; local ~/Pictures + dharmx/walls) → `setbg` |
 | `setbg <img>` | symlink image to `~/.config/wallpaper` and restart swaybg |
 | `vpn [off\|status]` | openfortivpn (Okta) for Paris office; waybar module shows state |
