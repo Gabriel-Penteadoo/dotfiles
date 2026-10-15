@@ -1,0 +1,47 @@
+# Prompt: current folder, git branch + status, arrow.  e.g.  omawrite main *%↑1 ❯
+# Status: * unstaged, + staged, % untracked, ↑n/↓n commits ahead/behind upstream.
+# Arrow is green, red when the last command failed. Replaces Fedora's user@host:~$.
+[[ $- == *i* ]] || return 0
+
+# Prints " branch status" for the repo we're in (one `git status` call), nothing outside a repo
+__prompt_git() {
+    local line head="" oid="" ab="" staged=0 unstaged=0 untracked=0 sym="" a b
+    while IFS= read -r line; do
+        case $line in
+            "# branch.head "*) head=${line#\# branch.head } ;;
+            "# branch.oid "*)  oid=${line#\# branch.oid } ;;
+            "# branch.ab "*)   ab=${line#\# branch.ab } ;;
+            "1 "* | "2 "*)
+                [[ ${line:2:1} != . ]] && staged=1
+                [[ ${line:3:1} != . ]] && unstaged=1 ;;
+            "u "*) unstaged=1 ;;
+            "? "*) untracked=1 ;;
+        esac
+    done < <(git status --porcelain=v2 --branch 2>/dev/null)
+    [[ -n $head ]] || return 0
+    [[ $head == "(detached)" ]] && head=${oid:0:7}
+    (( unstaged )) && sym+="*"
+    (( staged )) && sym+="+"
+    (( untracked )) && sym+="%"
+    if [[ -n $ab ]]; then
+        a=${ab%% *}; a=${a#+}; b=${ab##*-}
+        (( a )) && sym+="↑$a"
+        (( b )) && sym+="↓$b"
+    fi
+    # \001/\002 mark colour codes as zero-width for readline (\[ \] don't work in $(...))
+    printf ' \001\e[2m\002%s\001\e[0m\002' "$head"
+    [[ -n $sym ]] && printf ' \001\e[33m\002%s\001\e[0m\002' "$sym"
+}
+
+# $1 = exit status of the last command
+__prompt() {
+    local dir arrow=32
+    [[ $PWD == "$HOME" ]] && dir="~" || dir=${PWD##*/}
+    [[ -n $dir ]] || dir="/"
+    (( $1 )) && arrow=31
+    printf '\001\e[1m\002%s\001\e[0m\002' "$dir"
+    __prompt_git
+    printf ' \001\e[%sm\002❯\001\e[0m\002 ' "$arrow"
+}
+
+PS1='$(__prompt $?)'

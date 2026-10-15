@@ -45,6 +45,10 @@ From Omarchy, in `~/.bashrc.d/tools` and `~/.bashrc.d/functions`:
 
 `ssh` also reconnects by itself when an interactive session drops (Ctrl-C stops it).
 
+The prompt shows the folder, then the git branch and status when you're in a repo:
+`*` unchanged edits, `+` staged, `%` new files, `↑1`/`↓1` commits to push/pull. The `❯`
+turns red when the last command failed.
+
 ## Keeping it healthy
 
 - **Weekly: `sysupdate`.** Updates packages, Flatpaks and firmware, takes

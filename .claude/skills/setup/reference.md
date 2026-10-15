@@ -33,7 +33,7 @@ overview is `README.md` next to this file.
 | Session target | `~/.config/systemd/user/hyprland-session.target` |
 | Launchers | `~/.local/share/applications/` (web apps, vpn, omawrite) |
 | Scripts | `~/.local/bin/` |
-| Shell | bash; `~/.bashrc` sources `~/.bashrc.d/*` (`dotfiles`, `tools`, `functions`) |
+| Shell | bash; `~/.bashrc` sources `~/.bashrc.d/*` (`dotfiles`, `functions`, `prompt`, `tools`) |
 | Dotfiles | bare repo `~/.dotfiles`, alias in `~/.bashrc.d/dotfiles` |
 | Docs | `~/.claude/skills/setup/` (README.md, reference.md, SKILL.md) |
 
@@ -157,6 +157,10 @@ makes the arrow keys quit too).
 Plain bash; Fedora's `~/.bashrc` sources every file in `~/.bashrc.d` (interactive parts
 return early for non-interactive shells).
 - `dotfiles`: the `dot` alias.
+- `prompt`: `folder branch status ❯` (replaces Fedora's `bash-color-prompt`). `PS1='$(__prompt $?)'`;
+  one `git status --porcelain=v2 --branch` per prompt (~8 ms). Symbols: `*` unstaged, `+` staged,
+  `%` untracked, `↑n`/`↓n` ahead/behind. Arrow green, red after a failure. Colour codes use
+  `\001`/`\002` because `\[ \]` aren't honoured inside `$(...)`.
 - `tools`: from Omarchy's `default/bash/aliases` + `init`: zoxide (`cd` → `zd`, falls back to
   `builtin cd` for real paths), eza aliases (`ls`/`lsa`/`lt`/`lta`). Each block only activates
   when its tool is installed (`zoxide eza tealdeer yt-dlp` from dnf).
